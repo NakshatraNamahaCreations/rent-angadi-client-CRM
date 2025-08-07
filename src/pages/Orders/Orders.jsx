@@ -29,7 +29,15 @@ const Orders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await axios.get(`${ApiURL}/order/getallorder`);
+        const token = sessionStorage.getItem("token");
+        console.log(`orders page token: `, token);
+        const res = await axios.get(`${ApiURL}/order/my-orders-token`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log(`res.data.total: `, res.data.total);
+        console.log(`res.data.orderData[0]: `, res.data.orderData[0]);
         if (res.status === 200) {
           const transformed = res.data.orderData.map((order) => {
             const slotsWithQuoteDates = order.slots.map((slot) => ({
@@ -152,7 +160,7 @@ const Orders = () => {
       <Card className="shadow-sm mb-4">
         <Card.Body>
           <div className="row align-items-center">
-            <div className="col-md-6 mb-3 mb-md-0">
+            {/* <div className="col-md-6 mb-3 mb-md-0">
               <Form.Check
                 type="switch"
                 id="view-toggle"
@@ -166,40 +174,30 @@ const Orders = () => {
                 }
                 checked={viewMode === "calendar"}
               />
-            </div>
+            </div> */}
             {viewMode === "list" && (
-              <>
-                <div className="col-md-3 mb-3 mb-md-0">
-                  {/* <Form.Control
-                    type="date"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
-                    size="sm"
-                  /> */}
+              <div className="d-flex align-items-center gap-3">
+                <div className="col-md-3">
                   <DatePicker
                     selected={fromDate}
                     onChange={(date) => setFromDate(date)}
                     placeholderText="From Date"
                     className="form-control form-control-sm"
                     dateFormat="dd-MM-yyyy"
+                    style={{ width: '100%' }}
                   />
                 </div>
-                <div className="col-md-3 mb-3 mb-md-0">
-                  {/* <Form.Control
-                    type="date"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
-                    size="sm"
-                  /> */}
+                <div className="col-md-3">
                   <DatePicker
                     selected={toDate}
                     onChange={(date) => setToDate(date)}
                     placeholderText="To Date"
                     className="form-control form-control-sm"
                     dateFormat="dd-MM-yyyy"
+                    style={{ width: '100%' }}
                   />
                 </div>
-              </>
+              </div>
             )}
           </div>
           {viewMode === "list" && (

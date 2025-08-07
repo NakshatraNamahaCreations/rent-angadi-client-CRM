@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000, // change to your desired port
+    port: 4000, // change to your desired port
   },
   optimizeDeps: {
     include: ['file-saver', 'xlsx']

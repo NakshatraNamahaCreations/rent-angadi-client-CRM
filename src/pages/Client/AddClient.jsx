@@ -96,12 +96,12 @@ const AddClient = () => {
       return;
     }
 
-    // Validate all executive phone numbers
-    const invalidPhones = executives.filter((exec, index) => !validatePhone(exec.phone));
-    if (invalidPhones.length > 0) {
-      setErrorMessage("Invalid phone number(s) in executives");
-      return;
-    }
+    // // Validate all executive phone numbers
+    // const invalidPhones = executives.filter((exec, index) => !validatePhone(exec.phone));
+    // if (invalidPhones.length > 0) {
+    //   setErrorMessage("Invalid phone number(s) in executives");
+    //   return;
+    // }
 
     // Prepare data for API
     const payload = {
@@ -111,10 +111,10 @@ const AddClient = () => {
       clientPassword: client.password,
       email: client.email,
       address: client.address,
-      executives: executives.map((exec) => ({
-        name: exec.name,
-        phoneNumber: exec.phone,
-      })),
+      // executives: executives.map((exec) => ({
+      //   name: exec.name,
+      //   phoneNumber: exec.phone,
+      // })),
     };
 
     // console.log(`payload: `, payload);
@@ -136,10 +136,11 @@ const AddClient = () => {
         });
       } else {
         console.error("error adding client: ", res.data)
-        setErrorMessage("Failed to add client. Please try again.");
+        setErrorMessage("Failed to add client. Please try again 1.");
       }
     } catch (error) {
-      setErrorMessage("Failed to add client. Please try again.");
+      console.log(`err: `, error);
+      setErrorMessage("Failed to add client. Please try again 2: ", error);
     }
   };
 

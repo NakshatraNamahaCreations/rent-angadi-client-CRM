@@ -70,6 +70,7 @@ const AddNewEnquiry = () => {
   const [dismantleSlots, setDismantleSlots] = useState([]);
   const [availableDeliverySlots, setAvailableDeliverySlots] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [userRole, setUserRole] = useState("");
 
   // Selected products (persisted)
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -113,10 +114,18 @@ const AddNewEnquiry = () => {
   }, [company, clientData, executive]);
 
   const fetchClients = async () => {
+    const token = sessionStorage.getItem("token");
+    const user = sessionStorage.getItem("user");
     try {
-      const res = await axios.get(`${ApiURL}/client/getallClientsNames`);
+      const res = await axios.get(`${ApiURL}/client/getCurrentClientNameToken`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log(`client/getCurrentClientNameToken res.data: `, res.data);
       if (res.status === 200) {
         setClientData(res.data.ClientNames);
+        setUserRole(res.data.userRole);
       }
     } catch (error) {
       console.error("Error fetching clients:", error);
@@ -214,7 +223,7 @@ const AddNewEnquiry = () => {
     // Validation (add more as needed)
     if (
       !company ||
-      !executive ||
+      (!executive && userRole !== 'client') ||
       !deliveryDate ||
       !dismantleDate ||
       !selectedSlot ||
@@ -234,7 +243,9 @@ const AddNewEnquiry = () => {
       total: (parseInt(p.qty, 10) || 1) * (p.ProductPrice || p.price),
     }));
 
-    const clientId = clientData.find((c) => c.clientName === company)?._id;
+    const clientId = clientData[0]._id;
+    const executiveId = userRole !== 'client' ? clientData[0].executives[0]._id : "";
+    const executivePhoneNumber = userRole !== 'client' ? clientData[0].executives[0].phoneNumber : "";
 
     try {
       const config = {
@@ -245,12 +256,13 @@ const AddNewEnquiry = () => {
         data: {
           clientName: company,
           clientId,
+          executiveId,
           products: Products,
           category: subCategory,
           discount: discount,
           GrandTotal: grandTotal,
           GST,
-          clientNo: ClientNo,
+          clientNo: executivePhoneNumber,
           executivename: executive,
           address: venue,
           enquiryDate: deliveryDate
@@ -263,6 +275,7 @@ const AddNewEnquiry = () => {
           placeaddress: placeaddress,
         },
       };
+      console.log(`config: `, config);
       const response = await axios(config);
       if (response.status === 200) {
         // Clear form state
@@ -293,7 +306,8 @@ const AddNewEnquiry = () => {
 
         // Navigate after delay
         setTimeout(() => {
-          navigate("/enquiry-list");
+          // navigate("/enquiry-list");
+          window.location.reload();
         }, 1000); // Optional delay for user to see toast
       }
     } catch (error) {
@@ -329,15 +343,16 @@ const AddNewEnquiry = () => {
                         onChange={(e) => setCompany(e.target.value)}
                       >
                         <option value="">Select Company Name</option>
+                        {console.log(`clientData`, clientData)}
                         {clientData.map((c) => (
-                          <option key={c.phoneNumber} value={c.clientName}>
-                            {c.clientName}
+                          <option key={c.phoneNumber} value={c.name}>
+                            {c.name}
                           </option>
                         ))}
                       </Form.Select>
                     </Form.Group>
                   </Col>
-                  <Col md={2} className="d-flex align-items-end ">
+                  {/* <Col md={2} className="d-flex align-items-end ">
                     <Button
                       size="sm"
                       style={{
@@ -351,19 +366,19 @@ const AddNewEnquiry = () => {
                     >
                       Add Client
                     </Button>
-                  </Col>
+                  </Col> */}
                   <Col md={6}>
                     <Form.Group>
                       <Form.Label>Executive Name</Form.Label>
                       <Form.Select
                         value={executive}
                         onChange={(e) => setExecutive(e.target.value)}
-                        disabled={!company}
+                        disabled={!company || userRole === 'client'}
                       >
                         <option value="">Select Executive Name</option>
                         {company &&
                           clientData
-                            .find((c) => c.clientName === company)
+                            .find((c) => c.name === company)
                             ?.executives?.map((ex) => (
                               <option key={ex.name} value={ex.name}>
                                 {ex.name}

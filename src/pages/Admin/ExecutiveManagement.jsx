@@ -11,8 +11,8 @@ import { ApiURL } from "../../api.js";
 const ExecutiveManagement = () => {
   const [selected, setSelected] = useState(0);
   const [displayname, setDisplayName] = useState("");
-  const [contactno, setContactNo] = useState("");
-  const [nameOrEmail, setNameOrEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [cpassword, setCPassword] = useState("");
   const [userdata, setUserdata] = useState([]);
@@ -33,7 +33,7 @@ const ExecutiveManagement = () => {
       const filtered = userdata.filter(
         (user) =>
           user.displayname?.toLowerCase().includes(keyword) ||
-          user.contactno?.toString().includes(keyword) ||
+          user.phoneNumber?.toString().includes(keyword) ||
           user.email?.toLowerCase().includes(keyword)
       );
       setFilterData(filtered);
@@ -43,30 +43,31 @@ const ExecutiveManagement = () => {
   const getAllExecutives = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      console.log(`token: ${token}`);
+      console.log(`getAllExecutives token: ${token}`);
 
       const res = await axios.get(`${ApiURL}/executive`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(`res.data.admins: `, res.data.admins);
+      console.log(`getAllExecutives res.data: `, res.data);
+      console.log(`getAllExecutives res.data.client.executives: `, res.data.client.executives);
       if (res.status === 200) {
-        setUserdata(res.data.admins);
-        setFilterData(res.data.admins);
+        setUserdata(res.data.client.executives);
+        setFilterData(res.data.client.executives);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
 
-  const registerUser = async () => {
-    if (!displayname || !contactno || !nameOrEmail) {
+  const createExecutive = async () => {
+    if (!displayname || !phoneNumber || !email) {
       alert("Please fill all fields");
       return;
     }
 
-    if (!data && (!password || !cpassword)) {
+    if (!data && (!password || !email)) {
       alert("Password is required for new users");
       return;
     }
@@ -78,30 +79,39 @@ const ExecutiveManagement = () => {
 
     try {
       const payload = {
-        displayname,
-        contactno,
-        email: nameOrEmail,
+        name: displayname,
+        phoneNumber,
+        email: email,
       };
 
       if (password.trim() !== "") {
         payload.password = password;
       }
 
+      const token = sessionStorage.getItem("token");
+
       if (data) {
-        // Edit existing user
+        console.log(`data: `, data);
+        // Update existing executive
         const res = await axios.put(
-          `${ApiURL}/executive/${data.id}`,
-          payload
+          `${ApiURL}/executive/${data._id}`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         if (res.status === 200) {
-          alert("User updated successfully");
+          alert("✅ Executive updated successfully");
           clearForm();
           setSelected(0);
           setData(null);
           getAllExecutives();
         }
-      } else {        
+      } else {
         const token = sessionStorage.getItem("token");
+        console.log(`payload: `, payload);
         const res = await axios.post(
           `${ApiURL}/executive`,
           payload,
@@ -112,33 +122,42 @@ const ExecutiveManagement = () => {
           }
         );
         if (res.status === 201) {
-          toast.success("✅ User registered successfully");
+          alert("✅ Executive created successfully");
           clearForm();
           setSelected(0);
           getAllExecutives();
         }
       }
     } catch (error) {
-      console.error("Error saving user:", error);
-      alert("Something went wrong. Please check console.");
+      console.error("cant create exec err: ", error)
+      console.error("Error saving user:", error.response.data.message);
+      alert(error.response.data.message);
     }
   };
 
   const deleteUser = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      await axios.delete(`${ApiURL}/auth/users/${id}`);
-      toast.success("✅ User deleted successfully");
+      const token = sessionStorage.getItem("token");
+      await axios.delete(`${ApiURL}/executive/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("✅ User deleted successfully");
       getAllExecutives();
     } catch (error) {
-      console.error("Error deleting user", error);
+      console.error("Error deleting user", error.response.data.message);
+      alert(error.response.data.message);
     }
   };
 
   const clearForm = () => {
     setDisplayName("");
-    setContactNo("");
-    setNameOrEmail("");
+    setPhoneNumber("");
+    setEmail("");
     setPassword("");
     setCPassword("");
     setData(null);
@@ -181,28 +200,29 @@ const ExecutiveManagement = () => {
               <thead className="table-dark">
                 <tr>
                   <th scope="col">Sl No</th>
+                  <th scope="col">Display Name</th>
                   <th scope="col">Email</th>
-                  {/* <th scope="col">Contact No</th> */}
-                  {/* <th scope="col">Name/Email</th> */}
+                  <th scope="col">Phone Number</th>
                   <th scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filterdata?.map((row, index) => (
                   <tr key={row._id}>
+                    {console.log("row: ", row)}
                     <td>{index + 1}</td>
+                    <td>{row.name}</td>
                     <td>{row.email}</td>
-                    {/* <td>{row.contactno || "-"}</td> */}
-                    {/* <td>{row.name || "-"}</td> */}
+                    <td>{row.phoneNumber}</td>
                     <td>
                       <div className="btn-group" role="group">
                         <button
                           className="btn btn-sm btn-outline-warning"
                           onClick={() => {
                             setSelected(1);
-                            setDisplayName(row.displayname || "");
-                            setContactNo(row.contactno || "");
-                            setNameOrEmail(row.email || "");
+                            setDisplayName(row.name || "");
+                            setPhoneNumber(row.phoneNumber || "");
+                            setEmail(row.email || "");
                             setPassword("");
                             setCPassword("");
                             setData(row);
@@ -212,17 +232,17 @@ const ExecutiveManagement = () => {
                           <i className="bi bi-pencil-square"></i>
                         </button>
 
-                        <Link
+                        {/* <Link
                           to={`/admin-details/${row._id}`}
                           className="btn btn-sm btn-outline-info"
                           title="Assign Rights"
                         >
                           <i className="bi bi-shield-lock"></i>
-                        </Link>
+                        </Link> */}
 
                         <button
                           className="btn btn-sm btn-outline-danger"
-                          onClick={() => deleteUser(row.id)}
+                          onClick={() => deleteUser(row?._id)}
                           title="Delete"
                         >
                           <i className="bi bi-trash"></i>
@@ -259,16 +279,16 @@ const ExecutiveManagement = () => {
               <Input
                 className="form-control"
                 type="number"
-                value={contactno}
-                onChange={(e) => setContactNo(e.target.value)}
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
               />
             </div>
             <div className="col-md-6">
-              <label className="form-label">Name/Email</label>
+              <label className="form-label">Email</label>
               <Input
                 className="form-control"
-                value={nameOrEmail}
-                onChange={(e) => setNameOrEmail(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="col-md-6">
@@ -290,8 +310,8 @@ const ExecutiveManagement = () => {
               />
             </div>
           </form>
-          <button className="btn btn-success mt-4" onClick={registerUser}>
-            {data ? "Update Executive" : "Register Executive"}
+          <button className="btn btn-success mt-4" onClick={createExecutive}>
+            {data ? "Update Profile" : "Create Profile"}
           </button>
         </div>
       )}

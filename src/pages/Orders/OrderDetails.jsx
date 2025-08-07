@@ -1036,7 +1036,7 @@ const OrderDetails = () => {
               <Col xs={12} md={6}>
                 <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                   <span style={labelStyle}>Client Id:</span>
-                  <span style={valueStyle}>{order.ClientId}</span>
+                  <span style={valueStyle}>{order.clientId}</span>
                 </div>
                 <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                   <span style={labelStyle}>Company Name: </span>
@@ -1050,9 +1050,13 @@ const OrderDetails = () => {
                   <span style={labelStyle}>Executive Name: </span>
                   <span style={valueStyle}>{order.executivename}</span>
                 </div>
-                <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
+                {/* <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                   <span style={labelStyle}>Address: </span>
                   <span style={valueStyle}>{order.placeaddress}</span>
+                </div> */}
+                <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
+                  <span style={labelStyle}>Venue address:</span>
+                  <span style={valueStyle}>{order.Address}</span>
                 </div>
               </Col>
               <Col xs={12} md={6}>
@@ -1066,10 +1070,6 @@ const OrderDetails = () => {
                     </span>
                   </div>
                 )}
-                <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
-                  <span style={labelStyle}>Venue address:</span>
-                  <span style={valueStyle}>{order.Address}</span>
-                </div>
                 {/* {!pdfMode && ( */}
                 <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                   <span style={labelStyle}>Grand Total: </span>
@@ -1081,7 +1081,8 @@ const OrderDetails = () => {
                   style={{ display: "flex", gap: "10px", alignItems: "center", lineHeight: "1.2" }}
                 >
                   <span style={labelStyle}>Roundoff:</span>
-                  {!isEditingRoundOff ? (
+                  <span style={valueStyle}>₹ {roundOff}</span>
+                  {/* {!isEditingRoundOff ? (
                     <>
                       <span style={valueStyle}>₹ {roundOff}</span>
                       <Button
@@ -1117,7 +1118,7 @@ const OrderDetails = () => {
                         <FaTimes />
                       </Button>
                     </div>
-                  )}
+                  )} */}
                 </div>
                 <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                   <span style={labelStyle}>paid so far:</span>
@@ -1132,7 +1133,7 @@ const OrderDetails = () => {
             <hr className="my-3" />
             <div className="d-flex justify-content-between align-items-center mb-2">
               <span style={{ fontSize: 14, fontWeight: 600 }}>Products</span>
-              {!pdfMode && (
+              {/* {!pdfMode && (
                 <div>
                   <Button
                     variant="outline-success"
@@ -1153,7 +1154,7 @@ const OrderDetails = () => {
                     Add Refurbishment
                   </Button>
                 </div>
-              )}
+              )} */}
             </div>
 
 
@@ -1169,12 +1170,12 @@ const OrderDetails = () => {
                     <th>Slot Date</th>
                     <th>Product Name</th>
                     <th>Product img</th>
-                    {!pdfMode && <th>Available Stock</th>}
+                    {/* {!pdfMode && <th>Available Stock</th>} */}
                     <th>Selected Qty</th>
                     <th>Days</th>
                     <th>Price/Qty</th>
                     <th>Total</th>
-                    {!pdfMode && <th>Action</th>}
+                    {/* {!pdfMode && <th>Action</th>} */}
                   </tr>
                 </thead>
                 <tbody>
@@ -1444,7 +1445,7 @@ const OrderDetails = () => {
                     );
                   })}
                   {console.log(`*** products: `, products)}
-                  {
+                  {/* {
                     (
                       <tr>
                         <td colSpan={6} className="text-end">
@@ -1465,11 +1466,11 @@ const OrderDetails = () => {
                           <strong>₹{order?.payments.reduce((acc, curr) => acc + curr?.advancedAmount, 0)}</strong>
                         </td>
                       </tr>
-                    )}
+                    )} */}
                 </tbody>
               </Table>
             </div>
-            {!pdfMode && (
+            {/* {!pdfMode && (
               <div className="mb-2" style={{ fontWeight: 600, fontSize: 14 }}>
                 Refurbishment Details
               </div>
@@ -1547,503 +1548,11 @@ const OrderDetails = () => {
                   Cancel Order
                 </Button>
               </div>
-            )}
+            )} */}
 
 
           </Card.Body>
         </Card>
-
-        {/* Add Product Modal */}
-        <Modal show={showAdd} onHide={handleCloseAdd} centered>
-          <Modal.Header closeButton>
-            <Modal.Title>Add Product</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-              <Form.Group className="mb-3" controlId="addProductSelect">
-                <Form.Label>Product Name</Form.Label>
-                <Select
-                  options={availableToAdd.map((p) => ({
-                    value: p._id,
-                    label: p.ProductName,
-                  }))}
-                  value={
-                    addProductId
-                      ? availableToAdd
-                        .map((p) => ({ value: p._id, label: p.ProductName }))
-                        .find(
-                          (opt) => String(opt.value) === String(addProductId)
-                        )
-                      : null
-                  }
-                  onChange={handleProductSelect}
-                  isClearable
-                  placeholder="Search product..."
-                />
-              </Form.Group>
-              <Row>
-                <Col xs={6}>
-                  <Form.Group className="mb-3" controlId="addProductStock">
-                    <Form.Label>Available Stock</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={
-                        selectedAddProduct ? selectedAddProduct.availableStock : 0
-                      }
-                      disabled
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs={6}>
-                  <Form.Group className="mb-3" controlId="addProductQty">
-                    <Form.Label>Quantity</Form.Label>
-                    <Form.Control
-                      type="number"
-                      min={1}
-                      max={selectedAddProduct?.availableStock || 1}
-                      value={addQty}
-                      disabled={!addProductId}
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/^0+/, "");
-                        let qty = val === "" ? "" : Math.max(1, Number(val));
-                        if (
-                          selectedAddProduct &&
-                          qty > selectedAddProduct.availableStock
-                        ) {
-                          qty = selectedAddProduct.availableStock;
-                        }
-                        setAddQty(qty);
-                      }}
-                    />
-                    {selectedAddProduct &&
-                      addQty > selectedAddProduct.availableStock && (
-                        <div style={{ color: "red", fontSize: 12 }}>
-                          Cannot exceed available stock (
-                          {selectedAddProduct.availableStock})
-                        </div>
-                      )}
-                  </Form.Group>
-                </Col>
-                <Col xs={6}>
-                  <Form.Group className="mb-3" controlId="addProductPrice">
-                    <Form.Label>Price</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={`₹${selectedAddProduct ? selectedAddProduct.ProductPrice : 0
-                        }`}
-                      disabled
-                    />
-                  </Form.Group>
-                </Col>
-                <Col xs={6}>
-                  <Form.Group className="mb-3" controlId="addProductTotal">
-                    <Form.Label>Total Price</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={
-                        selectedAddProduct
-                          ? `₹${(addQty ? addQty : 1) *
-                          selectedAddProduct.ProductPrice
-                          }`
-                          : "₹0"
-                      }
-                      disabled
-                    />
-                  </Form.Group>
-                </Col>
-                {/* <Col xs={6}>
-                <Form.Group className="mb-3" controlId="addProductTotal">
-                  <Form.Label>choose slot</Form.Label>
-                  <Form.Select
-                    className="m-0 mt-1"
-                    value={
-                      productDates[selectedAddProduct?.productId]?.productSlot ||
-                      selectedAddProduct?.productSlot
-                    } // Default to initial slot value
-                    onChange={(e) =>
-                      handleDateChange(
-                        selectedAddProduct._id,
-                        "productSlot",
-                        e.target.value,
-                        e.target.value
-                      )
-                    }
-                  >
-                    {deliveryDismantleSlots.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col> */}
-              </Row>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-              variant="primary"
-              size="sm"
-              disabled={
-                !addProductId ||
-                !addQty ||
-                addQty < 1 ||
-                (selectedAddProduct && addQty > selectedAddProduct.availableStock)
-              }
-              onClick={handleAddProduct}
-            >
-              Add
-            </Button>
-          </Modal.Footer>
-        </Modal>
-
-        {/* Refurbishment Modal */}
-        <Modal show={showRefModal} onHide={handleCloseRefModal} centered>
-          <Modal.Header closeButton>
-            <Modal.Title style={{ fontSize: 18, fontWeight: 600 }}>
-              Add Refurbishment
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ fontSize: 14, fontWeight: 500 }}>
-                  Select Product Name <span style={{ color: "red" }}>*</span>
-                </Form.Label>
-                <Form.Select
-                  value={refProduct}
-                  onChange={(e) => {
-                    setRefProduct(e.target.value);
-                    setRefQty("");
-                    setRefPrice("");
-                    setRefDamage("");
-                  }}
-                >
-                  <option value="">Select products...</option>
-                  {products.map((prod, idx) => (
-                    <option key={idx} value={prod.productName}>
-                      {prod.productName}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-              {refProduct && (
-                <div
-                  className="mb-3"
-                  style={{
-                    background: "#f8f9fa",
-                    borderRadius: 8,
-                    padding: 10,
-                    gap: 10,
-                  }}
-                >
-                  <div style={{ minWidth: 120, fontWeight: 500 }}>
-                    {refProduct}
-                  </div>
-                  <div className="d-flex gap-2 my-2">
-                    <Form.Control
-                      type="number"
-                      min={1}
-                      max={
-                        products.find((p) => p.productName === refProduct)
-                          ?.availableStock || 1
-                      }
-                      placeholder="Quantity"
-                      value={refQty}
-                      style={{ width: 80, fontSize: 13 }}
-                      onChange={(e) => {
-                        let maxQty =
-                          products.find((p) => p.productName === refProduct)
-                            ?.availableStock || 1;
-                        let val = e.target.value.replace(/^0+/, "");
-                        if (val === "") setRefQty("");
-                        else
-                          setRefQty(Math.max(1, Math.min(Number(val), maxQty)));
-                      }}
-                    />
-                    <Form.Control
-                      type="number"
-                      min={1}
-                      placeholder="Price"
-                      value={refPrice}
-                      style={{ width: 80, fontSize: 13 }}
-                      onChange={(e) =>
-                        setRefPrice(e.target.value.replace(/^0+/, ""))
-                      }
-                    />
-                    <Form.Control
-                      type="text"
-                      placeholder="Description"
-                      value={refDamage}
-                      style={{ width: 100, fontSize: 13 }}
-                      onChange={(e) => setRefDamage(e.target.value)}
-                    />
-                    <Button
-                      variant="success"
-                      size="sm"
-                      style={{ fontWeight: 600, minWidth: 60 }}
-                      onClick={handleAddRefProduct}
-                      disabled={
-                        !refProduct ||
-                        !refQty ||
-                        !refPrice ||
-                        Number(refQty) < 1 ||
-                        Number(refPrice) < 1
-                      }
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-              )}
-              {/* <Form.Group className="mb-2">
-                <Form.Label style={{ fontSize: 14, fontWeight: 500 }}>
-                  Shipping Address <span style={{ color: "red" }}>*</span>
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  value={shippingAddress}
-                  onChange={(e) => setShippingAddress(e.target.value)}
-                  placeholder="Enter shipping address"
-                />
-              </Form.Group>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ fontSize: 14, fontWeight: 500 }}>
-                  Floor Manager
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  value={floorManager}
-                  onChange={(e) => setFloorManager(e.target.value)}
-                  placeholder="Enter floor manager"
-                />
-              </Form.Group> */}
-              <div
-                style={{ fontWeight: 600, fontSize: 15, margin: "12px 0 6px" }}
-              >
-                Added Products
-              </div>
-              <div className="table-responsive">
-                <Table
-                  bordered
-                  size="sm"
-                  style={{ background: "#fff", fontSize: 13 }}
-                >
-                  <thead>
-                    <tr style={{ background: "#f3f6fa" }}>
-                      <th>Product</th>
-                      <th>Qty</th>
-                      <th>Price</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {addedRefProducts.map((item, idx) => (
-                      <tr key={idx}>
-                        <td>{item.productName}</td>
-                        <td>{item.qty}</td>
-                        <td>₹{item.price}</td>
-                        <td>{item.damage}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseRefModal}>
-              Close
-            </Button>
-            <Button
-              variant="primary"
-              disabled={addedRefProducts.length === 0}
-              onClick={handleRefurbishment}
-            >
-              Submit
-            </Button>
-          </Modal.Footer>
-        </Modal>
-
-        <Modal show={showGenerateModal} onHide={handleCloseGenerateModal} centered>
-          <Modal.Header style={{ borderBottom: "none", padding: "20px 20px 0" }}>
-            <Modal.Title style={{ fontWeight: "600", color: "#2c3e50" }}>
-              Payment
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body style={{ padding: "20px" }}>
-            <Form>
-              <Form.Group className="mb-3">
-                <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
-                  Payment
-                </Form.Label>
-                <div>
-                  <Form.Check
-                    inline
-                    label="Offline"
-                    type="checkbox"
-                    checked={paymentData.status === "Offline"}
-                    onChange={() => setPaymentData((prev) => ({ ...prev, status: "Offline" }))}
-                    style={{ marginRight: "20px" }}
-                  />
-                  <Form.Check
-                    inline
-                    label="Online"
-                    type="checkbox"
-                    checked={paymentData.status === "Online"}
-                    onChange={() => setPaymentData((prev) => ({ ...prev, status: "Online" }))}
-                  />
-                </div>
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
-                  Amount
-                </Form.Label>
-                <div className="d-flex align-items-center">
-                  <span
-                    style={{
-                      marginRight: "10px",
-                      fontSize: "1.2rem",
-                      color: "#34495e",
-                    }}
-                  >
-                    ₹
-                  </span>
-                  <Form.Control
-                    type="number"
-                    name="amount"
-                    value={paymentData.amount}
-                    max={order?.GrandTotal}
-                    onChange={(e) => setPaymentData((prev) => ({ ...prev, amount: e.target.value }))}
-                    placeholder="0"
-                    style={{ borderRadius: "6px", borderColor: "#e0e0e0" }}
-                  />
-                </div>
-                <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
-                  Amount already Paid
-                </Form.Label>
-                {console.log("payments: ", order?.payments.reduce((acc, curr) => acc + curr?.advancedAmount, 0))}
-                <div className="d-flex align-items-center">
-                  <span
-                    style={{
-                      marginRight: "10px",
-                      fontSize: "1.2rem",
-                      color: "#34495e",
-                    }}
-                  >
-                    ₹
-                  </span>
-                  <Form.Control
-                    type="number"
-                    name="amount"
-                    value={amountPaid}
-                    max={order?.GrandTotal}
-                    // onChange={(e) => setPaymentData((prev) => ({ ...prev, amount: e.target.value }))}
-                    placeholder="0"
-                    disabled
-                    style={{ borderRadius: "6px", borderColor: "#e0e0e0" }}
-                  />
-                </div>
-                <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
-                  Amount Pending
-                </Form.Label>
-                {console.log("payments: ", order?.payments.reduce((acc, curr) => acc + curr?.advancedAmount, 0))}
-                <div className="d-flex align-items-center">
-                  <span
-                    style={{
-                      marginRight: "10px",
-                      fontSize: "1.2rem",
-                      color: "#34495e",
-                    }}
-                  >
-                    ₹
-                  </span>
-                  <Form.Control
-                    type="number"
-                    name="amount"
-                    value={amountPending}
-                    max={order?.GrandTotal}
-                    // onChange={(e) => setPaymentData((prev) => ({ ...prev, amount: e.target.value }))}
-                    placeholder="0"
-                    disabled
-                    style={{ borderRadius: "6px", borderColor: "#e0e0e0" }}
-                  />
-                </div>
-              </Form.Group>
-              {paymentData.status !== "Offline" && (
-                <Form.Group className="mb-3">
-                  <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
-                    Payment Mode
-                  </Form.Label>
-                  <Form.Select
-                    name="mode"
-                    value={paymentData.mode}
-                    onChange={(e) => setPaymentData((prev) => ({ ...prev, mode: e.target.value }))}
-                    style={{ borderRadius: "6px", borderColor: "#e0e0e0" }}
-                  >
-                    <option value="">Select Payment Mode</option>
-                    <option value="Googlepay">Googlepay</option>
-                    <option value="Phonepay">Phonepay</option>
-                    <option value="Paytm">Paytm</option>
-                    <option value="UPI">UPI</option>
-                  </Form.Select>
-                </Form.Group>
-              )}
-              <Form.Group className="mb-3">
-                <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
-                  Comments
-                </Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  name="comments"
-                  value={paymentData.comments}
-                  onChange={(e) => setPaymentData((prev) => ({ ...prev, comments: e.target.value }))}
-                  placeholder="Add any comments or remarks"
-                  style={{
-                    borderRadius: "6px",
-                    borderColor: "#e0e0e0",
-                    resize: "none",
-                  }}
-                />
-              </Form.Group>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer style={{ borderTop: "none", padding: "0 20px 20px" }}>
-            <Button
-              style={{
-                background: "linear-gradient(45deg, #27ae60, #2ecc71)",
-                border: "none",
-                borderRadius: "8px",
-                padding: "6px 10px",
-                fontWeight: "500",
-                transition: "transform 0.2s",
-                width: "100px",
-              }}
-              className="btn-sm"
-              onClick={() => {
-                // TODO: Implement payment submission logic here
-                handleAddPayment();
-              }}
-            >
-              Add
-            </Button>
-            <Button
-              style={{
-                background: "linear-gradient(45deg, #2980b9, #3498db)",
-                border: "none",
-                borderRadius: "8px",
-                padding: "6px 20px",
-                fontWeight: "500",
-                transition: "transform 0.2s",
-              }}
-              className="btn-sm"
-              onClick={handleCloseGenerateModal}
-            >
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
       </div>
     </div>
   );

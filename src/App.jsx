@@ -8,7 +8,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import Dashboard from "./pages/Dashboard";
 import Master from "./pages/Master";
 import Login from "./pages/Login.jsx";
-import Banner from "./pages/Banner/Banner.jsx";
+// import Banner from "./pages/Banner/Banner.jsx";
 import ProductManagement from "./pages/Product/ProductManagement.jsx";
 import AddProduct from "./pages/Product/AddProduct.jsx";
 import Client from "./pages/Client/Client.jsx";
@@ -83,39 +83,36 @@ function App() {
         })()}>
           <Routes>
             {/* <Route path="/" element={<Dashboard />} /> */}
-            <Route path="/admin-rights" element={<AdminRights />} />
-            <Route path="/admin-details/:id" element={<AdminDetails />} />
             <Route path="/executive-management" element={<ExecutiveManagement />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/master" element={<Master />} />
-            <Route path="/banner" element={<Banner />} />
-            <Route path="/product-management" element={<ProductManagement />} />
-            <Route path="/add-product" element={<AddProduct />} />
-            <Route path="/edit-product/:id" element={<AddProduct />} />
-            <Route path="/product-details/:id" element={<ProductDetails />} />
-            <Route path="/client" element={<Client />} />
-            <Route path="/add-client" element={<AddClient />} />
-            <Route path="/orders" element={<Orders />} />
+            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+            {/* <Route path="/product-management" element={<ProductManagement />} /> */}
+            {/* <Route path="/add-product" element={<AddProduct />} /> */}
+            {/* <Route path="/edit-product/:id" element={<AddProduct />} /> */}
+            {/* <Route path="/product-details/:id" element={<ProductDetails />} /> */}
+            {/* <Route path="/client" element={<Client />} /> */}
+            {/* <Route path="/add-client" element={<AddClient />} /> */}
+            <Route path="/view-orders" element={<Orders />} />
             <Route path="/orders-details/:id" element={<OrderDetails />} />
-            <Route path="/invoice/:id" element={<Invoice />} />
+            {/* <Route path="/invoice/:id" element={<Invoice />} /> */}
             <Route path="/enquiry-list" element={<EnquiryList />} />
-            <Route path="/enquiry-calender" element={<EnquiryCalender />} />
+            {/* <Route path="/enquiry-calender" element={<EnquiryCalender />} /> */}
             <Route path="/add-new-enquiry" element={<AddNewEnquiry />} />
             <Route path="/enquiry-details/:id" element={<EnquiryDetails />} />
             <Route path="/enquiries-by-date/:date" element={<EnquiryByDate />} />
             <Route path="/orders-by-date/:date" element={<OrderListBydate />} />
-            <Route path="/terms-conditions" element={<TermsAndConditions />} />
-            <Route path="/quotation" element={<Quotation />} />
-            <Route path="/quotation-details/:id" element={<QuotationDetails />} />
-            <Route path="/payment-report" element={<PaymentReport />} />
-            <Route path="/refurbihsment-report" element={<RefurbishmentReport />} />
-            <Route path="/refurbishment-invoice/:id" element={<RefurbishmentInvoice />} />
-            <Route path="/inventory-product-list" element={<InventoryProduct />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/damaged-products" element={<DamagedProductList />} />
+            {/* <Route path="/terms-conditions" element={<TermsAndConditions />} /> */}
+            {/* <Route path="/quotation" element={<Quotation />} /> */}
+            {/* <Route path="/quotation-details/:id" element={<QuotationDetails />} /> */}
+            {/* <Route path="/payment-report" element={<PaymentReport />} /> */}
+            {/* <Route path="/refurbihsment-report" element={<RefurbishmentReport />} /> */}
+            {/* <Route path="/refurbishment-invoice/:id" element={<RefurbishmentInvoice />} /> */}
+            {/* <Route path="/inventory-product-list" element={<InventoryProduct />} /> */}
+            {/* <Route path="/reports" element={<Reports />} /> */}
+            {/* <Route path="/damaged-products" element={<DamagedProductList />} /> */}
             {/* Redirect /login to dashboard if already logged in */}
             <Route path="/login" element={<Navigate to="/" />} />
-            <Route path="/quotation/invoice/:id" element={<QuotationInvoice />} />
+            <Route path="/" element={<Navigate to="/view-orders" />} />
+            {/* <Route path="/quotation/invoice/:id" element={<QuotationInvoice />} /> */}
           </Routes>
         </Layout>
       ) : (

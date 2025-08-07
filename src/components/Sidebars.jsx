@@ -22,32 +22,35 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { config } from "../services/config";
 import { ApiURL } from "../api";
+import { AuthManager } from "../utils/auth";
 // import logo from "../assets/RentangadiLogo2.svg";
 
 const Sidebars = () => {
-  const [userAccess, setUserAccess] = useState({});
+  // const [userAccess, setUserAccess] = useState({});
   const location = useLocation();
-  const token = sessionStorage.getItem("token");
-  // const userAccess = JSON.parse(sessionStorage.getItem("roles"))
+  const { token, permissions: userAccess, expiryTime } = AuthManager.getAuthData() || {};
+
+  console.log(`AuthManager.getAuthData(): `, AuthManager.getAuthData());
+  console.log(`userAccess: `, userAccess);
 
   const menuItems = [
-    { key: "dashboard", name: "Dashboard", path: "/dashboard", icon: MdDashboard },
-    { key: "master", name: "Master", path: "/master", icon: FaClipboardList },
-    { key: "banner", name: "Banner", path: "/banner", icon: FaTags },
-    { key: "productManagement", name: "Product Management", path: "/product-management", icon: FaBoxOpen },
-    { key: "clients", name: "Clients", path: "/client", icon: FaUserFriends },
+    // { key: "dashboard", name: "Dashboard", path: "/dashboard", icon: MdDashboard },
+    // { key: "master", name: "Master", path: "/master", icon: FaClipboardList },
+    // { key: "banner", name: "Banner", path: "/banner", icon: FaTags },
+    // { key: "productManagement", name: "Product Management", path: "/product-management", icon: FaBoxOpen },
+    // { key: "clients", name: "Clients", path: "/client", icon: FaUserFriends },
     { key: "executiveManagement", name: "Executive Management", path: "/executive-management", icon: MdInventory },
-    { key: "addNewEnquiry", name: "Add new enq", path: "/add-new-enquiry", icon: MdInventory },
-    { key: "myOrders", name: "Add new enq", path: "/my-orders", icon: MdInventory },
-    { key: "enquiryList", name: "Enquiry List", path: "/enquiry-list", icon: MdOutlineSupportAgent },
-    { key: "enquiryCalendar", name: "Enquiry Calendar", path: "/enquiry-calender", icon: FaCalendarAlt },
-    { key: "quotation", name: "Quotation", path: "/quotation", icon: FaFileInvoiceDollar },
-    { key: "orders", name: "Orders", path: "/orders", icon: FaShoppingBag },
-    { key: "termsAndConditions", name: "Terms & Conditions", path: "/terms-conditions", icon: FaFileContract },
-    { key: "paymentReport", name: "Payment Report", path: "/payment-report", icon: FaChartBar },
-    { key: "refurbishmentReport", name: "Refurbishment Report", path: "/refurbihsment-report", icon: FaTools },
-    { key: "inventoryProductList", name: "Inventory Product List", path: "/inventory-product-list", icon: MdInventory },
-    { key: "adminRights", name: "Admin Rights", path: "/admin-rights", icon: MdInventory },
+    { key: "addNewEnquiry", name: "Add Enquiry", path: "/add-new-enquiry", icon: MdInventory },
+    { key: "viewOrders", name: "View Orders", path: "/view-orders", icon: MdInventory },
+    // { key: "enquiryList", name: "Enquiry List", path: "/enquiry-list", icon: MdOutlineSupportAgent },
+    // { key: "enquiryCalendar", name: "Enquiry Calendar", path: "/enquiry-calender", icon: FaCalendarAlt },
+    // { key: "quotation", name: "Quotation", path: "/quotation", icon: FaFileInvoiceDollar },
+    // { key: "orders", name: "Orders", path: "/orders", icon: FaShoppingBag },
+    // { key: "termsAndConditions", name: "Terms & Conditions", path: "/terms-conditions", icon: FaFileContract },
+    // { key: "paymentReport", name: "Payment Report", path: "/payment-report", icon: FaChartBar },
+    // { key: "refurbishmentReport", name: "Refurbishment Report", path: "/refurbihsment-report", icon: FaTools },
+    // { key: "inventoryProductList", name: "Inventory Product List", path: "/inventory-product-list", icon: MdInventory },
+    // { key: "adminRights", name: "Admin Rights", path: "/admin-rights", icon: MdInventory },
     // {
     //   name: "Product Reports",
     //   path: "/product-reports",
@@ -58,27 +61,58 @@ const Sidebars = () => {
     //   path: "/client-reports",
     //   icon: FaChartLine,
     // },
-    { key: "reports", name: "Reports", path: "/reports", icon: FaChartLine },
-    { key: "damagedAndLost", name: "Damaged/Lost", path: "/damaged-products", icon: FaChartBar }
+    // { key: "reports", name: "Reports", path: "/reports", icon: FaChartLine },
+    // { key: "damagedAndLost", name: "Damaged/Lost", path: "/damaged-products", icon: FaChartBar }
   ];
 
-  useEffect(() => {
-    const fetchAdminPermissions = async () => {
-      console.log(`fetching permissions in sidebar`);
-      try {
-        const res = await axios.get(`${ApiURL}/admins/permissions`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-        })
-        console.log(`admin access: `, res.data);
-        setUserAccess(res.data.admin.roles)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    fetchAdminPermissions()
-  }, [])
+  // useEffect(() => {
+  // const fetchAdminPermissions = async () => {
+  //   console.log(`fetching permissions in sidebar`);
+  //   try {
+  //     const res = await axios.get(`${ApiURL}/admins/permissions`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`
+  //       },
+  //     })
+  //     console.log(`admin access: `, res.data);
+  //     setUserAccess(res.data.admin.roles)
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+  // }
+  // fetchAdminPermissions()
+
+
+
+  // before checkAuth
+  // const storedData = sessionStorage.getItem("permissions");
+
+  // const expiryTime = new Date().getTime() + 7200000;  // 2 hour from now (7200000 ms = 2 hour)
+
+  // console.log(`current time: `, new Date().getTime());
+  // console.log(`expiry time: `, expiryTime);
+
+  // // Store permissions and expiry time in sessionStorage
+  // sessionStorage.setItem("permissions", JSON.stringify({
+  //   data: res.data.admin.permissions,
+  //   expiry: expiryTime
+  // }));
+
+  // if (storedData) {
+  //   const { data, expiry } = JSON.parse(storedData);
+
+  //   // Check if the stored data is expired
+  //   if (new Date().getTime() <= expiry) {
+  //     // If not expired, use the stored permissions        
+  //     console.log('Using cached permissions:', data);
+  //     return;
+  //   } else {
+  //     // If expired, remove from sessionStorage
+  //     // sessionStorage.removeItem("permissions");
+  //     sessionStorage.clear();
+  //   }
+  // }
+  // }, [])
 
   // Filter menu items based on admin access
   const filtered = menuItems.filter((item) =>

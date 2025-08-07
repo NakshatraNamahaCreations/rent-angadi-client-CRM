@@ -234,34 +234,12 @@ const Header = () => {
   useEffect(() => {
     const path = location.pathname;
     // Using matchPath to match dynamic paths
-    if (matchPath("/dashboard", path)) {
-      setCurrentTab("Dashboard");
-    } else if (matchPath("/master", path)) {
-      setCurrentTab("Master");
-    } else if (matchPath("/banner", path)) {
-      setCurrentTab("Banner");
-    } else if (matchPath("/prdoduct-management", path)) {
-      setCurrentTab("Prdoduct Management");
-    } else if (matchPath("/add-product", path)) {
-      setCurrentTab("Add Product");
-    } else if (matchPath("/edit-product/:id", path)) {
-      setCurrentTab("Edit Product");
-    } else if (matchPath("/product-details/:id", path)) {
-      setCurrentTab("Product Details");
-    } else if (matchPath("/client", path)) {
-      setCurrentTab("Client");
-    } else if (matchPath("/add-client", path)) {
-      setCurrentTab("Add Client");
-    } else if (matchPath("/orders", path)) {
-      setCurrentTab("Orders");
+    if (matchPath("/view-orders", path)) {
+      setCurrentTab("View Orders");
     } else if (matchPath("/orders-details/:id", path)) {
       setCurrentTab("Orders Details");
-    } else if (matchPath("/invoice/:id", path)) {
-      setCurrentTab("Invoice");
     } else if (matchPath("/enquiry-list", path)) {
       setCurrentTab("Enquiry List");
-    } else if (matchPath("/enquiry-calender", path)) {
-      setCurrentTab("Enquiry Calender");
     } else if (matchPath("/add-new-enquiry", path)) {
       setCurrentTab("Add New Enquiry");
     } else if (matchPath("/enquiry-details/:id", path)) {
@@ -270,22 +248,16 @@ const Header = () => {
       setCurrentTab("Enquiries by Date");
     } else if (matchPath("/orders-by-date/:date", path)) {
       setCurrentTab("Orders by Date");
-    } else if (matchPath("/terms-conditions", path)) {
-      setCurrentTab("Terms & Conditions");
     } else if (matchPath("/quotation", path)) {
       setCurrentTab("Quotation");
     } else if (matchPath("/quotation-details/:id", path)) {
       setCurrentTab("Quotation Details");
     } else if (matchPath("/quotation/invoice/:id", path)) {
       setCurrentTab("Quotation Invoice");
-    } else if (matchPath("/payment-report", path)) {
-      setCurrentTab("Payment Report");
-    } else if (matchPath("/refurbihsment-report", path)) {
-      setCurrentTab("Refurbishment Report");
-    } else if (matchPath("/refurbishment-invoice/:id", path)) {
-      setCurrentTab("Refurbihsment Invoice");
-    } else if (matchPath("/inventory-product-list", path)) {
-      setCurrentTab("Inventory Product");
+    } else if (matchPath("/executive-management", path)) {
+      setCurrentTab("Executive Management");
+    } else if (matchPath("/view-orders", path)) {
+      setCurrentTab("View Orders");
     } else {
       setCurrentTab("Dashboard");
     }
@@ -295,7 +267,7 @@ const Header = () => {
     if (window.history.length > 1) {
       navigate(-1);
     } else {
-      navigate("/");
+      navigate("/view-orders");
     }
   };
 
@@ -309,7 +281,9 @@ const Header = () => {
     "/banner",
     "/prdoduct-management",
     "/client",
-    "/orders",
+    "/view-orders",
+    "/add-new-enquiry",
+    "/executive-management",
     "/enquiry-list",
     "/enquiry-calender",
     "/quotation",
@@ -332,9 +306,9 @@ const Header = () => {
         <p className="fs-5 fw-bold mb-0">{currentTab}</p>
       </div>
 
-      <div className="position-relative">
+      {/* <div className="position-relative">
         <FaUserCircle className="fs-3" style={{ cursor: "pointer" }} />
-      </div>
+      </div> */}
     </div>
   );
 };

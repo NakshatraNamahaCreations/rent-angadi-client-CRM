@@ -368,12 +368,12 @@ const EnquiryDetails = () => {
         headers: { "content-type": "application/json" },
         data: {
           enquiryObjectId: enquiry._id,
-          enquiryId: enquiry.enquiryId,
-          userId: enquiry.userId,
+          enquiryId: enquiry.enquiryId,          
           quoteTime: enquiry.enquiryTime,
           quoteDate: enquiry.enquiryDate,
           endDate: enquiry.endDate,
           clientId: enquiry.clientId,
+          executiveId: enquiry.executiveId,
           clientName: enquiry.clientName,
           executivename: enquiry.executivename,
           workerAmt: 0, // or your value

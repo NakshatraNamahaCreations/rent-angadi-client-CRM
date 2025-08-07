@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -6,35 +5,52 @@ import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 import { ApiURL } from "../api";
 import logo from "../assets/RentangadiLogo.jpg";
+import { AuthManager } from "../utils/auth";
 
 const Login = ({ handleLogin }) => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("7777777777");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Please fill all fields");
-      return;
-    }
+    // if (!phone || !password) {
+    //   toast.error("Please fill all fields");
+    //   return;
+    // }
 
     setLoading(true);
     try {
-      const response = await axios.post(`${ApiURL}/adminLogin`, {
-        email,
+      const res = await axios.post(`${ApiURL}/user/login`, {
+        phoneNumber: phone,
         password,
       });
-      if (response.status === 200) {
+      console.log(`res.data: `, res.data);
+
+
+
+
+      // const storedData = sessionStorage.getItem("permissions");
+
+      // const expiryTime = new Date().getTime() + 7200000;  // 2 hour from now (7200000 ms = 2 hour)
+
+      // console.log(`current time: `, new Date().getTime());
+      // console.log(`expiry time: `, expiryTime);
+
+      // Store permissions and expiry time in sessionStorage
+      // sessionStorage.setItem("permissions", JSON.stringify({
+      //   data: res.data.permissions,
+      //   expiry: expiryTime
+      // }));
+
+      if (res.status === 200) {
         toast.success("Login successful");
-        sessionStorage.setItem("token", response.data.token);
-        console.log(`roles: `, response.data.roles);
-        sessionStorage.setItem("roles", JSON.stringify(response.data.roles));
-        console.log(`sessionStorage.getItem("roles"): `, sessionStorage.getItem("roles"));
-        handleLogin && handleLogin(response.data.roles);
-        navigate("/dashboard");
+        
+        AuthManager.setAuthData(res.data.token, res.data.permissions);
+        handleLogin && handleLogin(res.data.permissions);
+        navigate("/view-orders");
       } else {
         toast.error("Login failed");
       }
@@ -98,13 +114,13 @@ const Login = ({ handleLogin }) => {
           <Form onSubmit={handleSubmit} autoComplete="off">
             <Form.Group className="mb-3" controlId="formBasicEmail">
               <Form.Label style={{ fontWeight: 600, color: "#222" }}>
-                Email <span style={{ color: "#e67c52" }}>*</span>
+                Phone Number <span style={{ color: "#e67c52" }}>*</span>
               </Form.Label>
               <Form.Control
-                type="email"
-                placeholder="Yourname@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="tel"
+                placeholder="Enter your phone number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 disabled={loading}
                 style={{
                   borderRadius: "8px",
