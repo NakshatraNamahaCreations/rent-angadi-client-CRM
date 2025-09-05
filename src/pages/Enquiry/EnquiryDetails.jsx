@@ -196,9 +196,7 @@ const EnquiryDetails = () => {
   // console.log(`alprods : `, allProducts);
   console.log("enquiry: ", enquiry);
   console.log("filtered prods: ", filteredProducts);
-  const clientNo = enquiry?.clientDetails?.executives?.find(
-    (exec) => exec.name === enquiry.executivename
-  )?.phoneNumber || "N/A";
+  const clientNo = enquiry?.clientNo
 
   console.log(`clietnno:  `, clientNo);
   const dateFormat = (dateStr) => {
@@ -314,111 +312,6 @@ const EnquiryDetails = () => {
   const selectedAddProduct = allProducts.find(
     (p) => p._id === String(addProductId)
   );
-
-  const handleCreateQuote = async () => {
-    if (!enquiry) {
-      alert("Enquiry data not loaded");
-      return;
-    }
-
-    const confirmedProducts = enquiry?.products.filter((product) => confirmed[product?.productId]);
-    console.log("confirmed: ", confirmedProducts)
-    console.log("products: ", enquiry?.products)
-
-    const dataToSubmit = {
-      enquiryObjectId: enquiry._id,
-      enquiryId: enquiry.enquiryId,
-      quoteTime: enquiry.enquiryTime,
-      quoteDate: enquiry.enquiryDate,
-      endDate: enquiry.endDate,
-      clientId: enquiry.clientId,
-      clientName: enquiry.clientName,
-      executivename: enquiry.executivename,
-      workerAmt: 0, // or your value
-      category: enquiry.category,
-      followupStatus: enquiry.followupStatus || "",
-      GST: Number(gst) || 0,
-      GrandTotal: Number(grandTotal) || 0,
-      adjustments: Number(roundOff) || 0,
-      discount: Number(discount) || 0,
-      status: "pending", // or use enquiry.status if you want
-      termsandCondition: enquiry.termsandCondition || [],
-      clientNo: enquiry.clientDetails?.executives?.[0]?.phoneNumber || "",
-      address: enquiry.address,
-      labourecharge: Number(manpower) || 0,
-      transportcharge: Number(transport) || 0,
-      placeaddress: enquiry.placeaddress || "",
-      slots: enquiry.slots || [
-        {
-          slotName: enquiry.enquiryTime,
-          Products: enquiry.products,
-          quoteDate: enquiry.enquiryDate,
-          endDate: enquiry.endDate,
-        },
-      ],
-    };
-    // Log the object to the console
-    console.log("dataToSubmit: ", dataToSubmit);
-    setLoading(true);
-    try {
-      const config = {
-        url: "/quotations/createQuotation",
-        method: "post",
-        baseURL: ApiURL,
-        headers: { "content-type": "application/json" },
-        data: {
-          enquiryObjectId: enquiry._id,
-          enquiryId: enquiry.enquiryId,          
-          quoteTime: enquiry.enquiryTime,
-          quoteDate: enquiry.enquiryDate,
-          endDate: enquiry.endDate,
-          clientId: enquiry.clientId,
-          executiveId: enquiry.executiveId,
-          clientName: enquiry.clientName,
-          executivename: enquiry.executivename,
-          workerAmt: 0, // or your value
-          category: enquiry.category,
-          followupStatus: enquiry.followupStatus || "",
-          GST: Number(gst) || 0,
-          GrandTotal: Number(grandTotal) || 0,
-          adjustments: Number(roundOff) || 0,
-          discount: Number(discount) || 0,
-          status: "pending", // or use enquiry.status if you want
-          termsandCondition: enquiry.termsandCondition || [],
-          clientNo: enquiry.clientDetails?.executives?.[0]?.phoneNumber || "",
-          address: enquiry.address,
-          labourecharge: Number(manpower) || 0,
-          transportcharge: Number(transport) || 0,
-          inchargeName: inchargeName || "",
-          inchargePhone: inchargePhone || "",
-          placeaddress: enquiry.placeaddress || "",
-          slots: enquiry.slots || [
-            {
-              slotName: enquiry.enquiryTime,
-              Products: confirmedProducts || enquiry.products,
-              quoteDate: enquiry.enquiryDate,
-              endDate: enquiry.endDate,
-            },
-          ],
-        },
-      };
-      const response = await axios(config);
-      if (response.status === 200) {
-        toast.success("Quotation Created Successfully");
-        setResponseMessage(response.data.message);
-        console.log("res.data: ", response.data);
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error("Error creating quotation:", error);
-      if (error.response) {
-        alert(error.response.data.error || "Error creating quotation");
-      } else {
-        alert("An error occurred. Please try again later.");
-      }
-    }
-    setLoading(false);
-  };
 
   // older code
   // const handleAddProduct = async () => {
@@ -681,7 +574,7 @@ const EnquiryDetails = () => {
         <Col md={7} lg={8}>
           <div className="d-flex justify-content-between align-items-center mb-2">
             <h4 style={{ fontWeight: 700, marginBottom: 0 }}>Products</h4>
-            {enquiry?.status === "not send" && (
+            {/* {enquiry?.status === "not send" && (
               <Button
                 size="sm"
                 style={{
@@ -694,7 +587,7 @@ const EnquiryDetails = () => {
               >
                 Add Product
               </Button>
-            )}
+            )} */}
           </div>
 
           <Table
@@ -712,7 +605,7 @@ const EnquiryDetails = () => {
                 <th>Qty</th>
                 <th>Price</th>
                 <th>Total</th>
-                {enquiry?.status === "not send" && <th>Action</th>}
+                {/* {enquiry?.status === "not send" && <th>Action</th>} */}
               </tr>
             </thead>
             <tbody>
@@ -751,7 +644,7 @@ const EnquiryDetails = () => {
                     </td>
                     <td>₹{p.price}</td>
                     <td>₹{p.qty * p.price}</td>
-                    {enquiry?.status === "not send" && (
+                    {/* {enquiry?.status === "not send" && (
                       <td>
                         {editIdx === p.productId ? (
                           <>
@@ -801,7 +694,7 @@ const EnquiryDetails = () => {
                           </>
                         )}
                       </td>
-                    )}
+                    )} */}
                   </tr>
                 );
               })}
@@ -809,125 +702,7 @@ const EnquiryDetails = () => {
           </Table>
 
           {/* Confirm Products Section as List */}
-          <Card className="shadow-sm mb-4" style={{ borderRadius: 14 }}>
-            <Card.Body>
-              <div className="mb-3" style={{ maxWidth: 320 }}>
-                <InputGroup>
-                  <Form.Control
-                    type="text"
-                    placeholder="Search product to confirm..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </InputGroup>
-              </div>
-              <Table
-                bordered
-                hover
-                responsive
-                size="sm"
-                style={{ background: "#f9f9f9", fontSize: 13 }}
-              >
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Product Name</th>
-                    <th>Order Qty</th>
-                    <th>Available</th>
-                    <th>Status</th>
-                    {enquiry?.status === "not send" && <th>Action</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProducts?.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="text-center text-muted">
-                        No products found.
-                      </td>
-                    </tr>
-                  )}
-                  {filteredProducts &&
-                    filteredProducts?.map((p, idx) => {
-                      const stock =
-                        enquiry?.products?.find(
-                          (ap) => ap.productId === p.productId
-                        )?.qty || 0;
-                      // const orderQty =
-                      //   enquiry?.products?.find((ap) => ap._id === p.productId)
-                      //     ?.qty || 0;
-                      const orderQty =
-                        enquiry?.products?.find(
-                          (ap) => ap.productId === p.productId
-                        )?.qty || 0;
-
-                      console.log(`orderQty: `, orderQty);
-                      console.log(`stock: `, stock);
-                      const canConfirm =
-                        p.availableStock > 0 && stock <= p.availableStock;
-                      console.log(`canConfirm: `, canConfirm);
-                      return (
-                        <tr key={p.productId}>
-                          <td>{idx + 1}</td>
-                          <td>{p.productName}</td>
-                          {/* <td>{stock.qty}</td> */}
-                          <td>{orderQty}</td>
-                          {/* <p>{console.log("filter item: ", p)}</p> */}
-                          <td>{p.availableStock}</td>
-                          {/* <p>{console.log("stock: ", stock)}</p> */}
-                          <td>
-                            {enquiry?.status === "not send" ? (
-                              confirmed[p.productId] ? (
-                                <span
-                                  style={{ color: "#28a745", fontWeight: 600 }}
-                                >
-                                  Confirmed
-                                </span>
-                              ) : (
-                                <span
-                                  style={{
-                                    color: canConfirm ? "#007bff" : "#d00",
-                                  }}
-                                >
-                                  {canConfirm ? "Pending" : "Insufficient"}
-                                </span>
-                              )
-                            ) : (
-                              <span
-                                style={{
-                                  color: "#6c757d",
-                                  fontStyle: "italic",
-                                }}
-                              >
-                                Sent
-                              </span>
-                            )}
-                          </td>
-
-                          <td>
-                            {enquiry?.status === "not send" && (
-                              <Button
-                                variant={
-                                  confirmed[p.productId]
-                                    ? "success"
-                                    : "outline-success"
-                                }
-                                size="sm"
-                                onClick={() => handleConfirm(p.productId)}
-                                disabled={!canConfirm} // Disable if insufficient
-                              >
-                                {confirmed[p.productId]
-                                  ? "Confirmed"
-                                  : "Confirm"}
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
+          
         </Col>
       </Row>
 
@@ -1036,7 +811,7 @@ const EnquiryDetails = () => {
 
       {/* Sticky Footer for Total and Create Quotation */}
       {/* {enquiry?.status === "not send" && ( */}
-      <div
+      {/* <div
         style={{
           // position: "fixed",
           // left: 280,
@@ -1172,27 +947,11 @@ const EnquiryDetails = () => {
                 </Form.Group>
               </Col>
             </Row>
-
-            {/* <Col md={3}>
-                <Form.Group>
-                  <Form.Label>Round off</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={
-                      enquiry?.status === "sent"
-                        ? enquiry.quotationData.adjustments
-                        : roundOff
-                    }
-                    onChange={(e) => setRoundOff(e.target.value)}
-                    disabled={enquiry?.status === "sent"}
-                  />
-                </Form.Group>
-              </Col> */}
           </Form>
         </Container>
-      </div>
+      </div> */}
       {/* )} */}
-      <div
+      {/* <div
         style={{
           position: "fixed",
           left: "20%", // <-- Adjust this to your sidebar width
@@ -1232,7 +991,7 @@ const EnquiryDetails = () => {
             </Col>
           </Row>
         </Container>
-      </div>
+      </div> */}
     </Container>
   );
 };

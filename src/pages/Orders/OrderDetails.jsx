@@ -1170,7 +1170,7 @@ const OrderDetails = () => {
                     <th>Slot Date</th>
                     <th>Product Name</th>
                     <th>Product img</th>
-                    {/* {!pdfMode && <th>Available Stock</th>} */}
+                    {!pdfMode && <th>Available Stock</th>}
                     <th>Selected Qty</th>
                     <th>Days</th>
                     <th>Price/Qty</th>

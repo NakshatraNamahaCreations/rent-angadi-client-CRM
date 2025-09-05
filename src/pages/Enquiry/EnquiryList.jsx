@@ -7,6 +7,7 @@ import axios from "axios";
 import { ApiURL } from "../../api";
 import Pagination from "../../components/Pagination";
 import { toast } from "react-hot-toast";
+import { AuthManager } from "../../utils/auth";
 
 const EnquiryList = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -20,10 +21,21 @@ const EnquiryList = () => {
   const itemsPerPage = 10;
 
   useEffect(() => {
+    const token = sessionStorage.getItem('token')
+    const { user } = AuthManager.getAuthData() || {}
+    // console.log(`user: `, user);
+    let clientId = ""
+    if (user?.role === 'client') {
+      clientId = user?._id
+    } else {
+      clientId = user?.clientId
+    }
+
     const fetchEnquiries = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${ApiURL}/Enquiry/getallEnquiry`);
+        const res = await axios.get(`${ApiURL}/Enquiry/my-enquiries/${clientId}`);
+        console.log(`getallEnquiry res.data: `, res.data);
         if (res.status === 200) {
           setEnquiries(res.data.enquiryData);
         }
@@ -39,8 +51,9 @@ const EnquiryList = () => {
   const filtered = enquiries.filter(
     (e) =>
       (e.enquiryId && String(e.enquiryId).toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (e.companyName && e.companyName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (e.executiveName && e.executiveName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      // (e.clientName && e.clientName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (e.GrandTotal && e.GrandTotal.toString().toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (e.executivename && e.executivename.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (e.enquiryDate && e.enquiryDate.includes(searchQuery))
   );
 
@@ -105,7 +118,7 @@ const EnquiryList = () => {
             Enquiry List
           </h5>
 
-          <Button
+          {/* <Button
             size="sm"
             style={{
               backgroundColor: "#BD5525",
@@ -116,7 +129,7 @@ const EnquiryList = () => {
             className="add-btn"
           >
             Create Enquiry
-          </Button>
+          </Button> */}
         </Card.Body>
       </Card>
 

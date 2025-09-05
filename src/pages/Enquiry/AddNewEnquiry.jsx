@@ -197,6 +197,15 @@ const AddNewEnquiry = () => {
   const handleQtyChange = (id, qty) => {
     // Directly update the quantity without replacing or restricting characters
     let val = qty;
+    const product = selectedProducts.find(p => p.id === id || p._id === id);
+
+    // Ensure quantity doesn't exceed product stock
+    if (product && product.ProductStock) {
+      val = Math.min(parseFloat(val), product.ProductStock);
+      if (parseFloat(val) > product.ProductStock) {
+        toast.warning(`Quantity cannot exceed available stock (${product.ProductStock})`);
+      }
+    }
 
     // Update the selected products with the new quantity and total
     setSelectedProducts((prev) =>
@@ -231,6 +240,11 @@ const AddNewEnquiry = () => {
       selectedProducts.length === 0
     ) {
       alert("Please fill all required fields and select at least one product.");
+      return;
+    }
+
+    if (deliveryDate > dismantleDate) {
+      alert("Delivery date cannot be after Dismantle date");
       return;
     }
 
@@ -311,12 +325,23 @@ const AddNewEnquiry = () => {
         }, 1000); // Optional delay for user to see toast
       }
     } catch (error) {
-      console.error(error);
-      if (error.response) {
-        alert(error.response.data.error);
-      } else {
-        alert("An error occurred. Please try again later.");
-      }
+      console.error("error: ", error);
+      // console.log(`toast err: `, error?.response?.data?.error); 
+      // toast.error("An error occurred: ", error?.response?.data?.error);
+      const errorMessage = error?.response?.data?.error ||
+        (error?.message ? `Error: ${error.message}` : "An unexpected error occurred");
+      console.log(`Error message: ${errorMessage}`);
+      toast.error(errorMessage);
+      // const errorMessage = error?.response?.data?.error || 
+      // (error?.message ? `Error: ${error.message}` : "An unexpected error occurred");
+      // toast.error(errorMessage);
+
+
+      // if (error.response) {
+      //   alert("An error occurred: ", error.response.data.error);
+      // } else {
+      //   alert("An error occurred. Please try again later.");
+      // }
     }
   };
 

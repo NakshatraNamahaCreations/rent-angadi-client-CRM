@@ -9,7 +9,7 @@ import { AuthManager } from "../utils/auth";
 
 const Login = ({ handleLogin }) => {
   const navigate = useNavigate();
-  const [phone, setPhone] = useState("7777777777");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ const Login = ({ handleLogin }) => {
         phoneNumber: phone,
         password,
       });
-      console.log(`res.data: `, res.data);
+      // console.log(`res.data: `, res.data);
 
 
 
@@ -47,14 +47,15 @@ const Login = ({ handleLogin }) => {
 
       if (res.status === 200) {
         toast.success("Login successful");
-        
-        AuthManager.setAuthData(res.data.token, res.data.permissions);
+
+        AuthManager.setAuthData(res.data.token, res.data.permissions, res.data.user);
         handleLogin && handleLogin(res.data.permissions);
         navigate("/view-orders");
       } else {
         toast.error("Login failed");
       }
     } catch (error) {
+      console.log(`err logging in: `, error);
       toast.error("Invalid credentials or server error");
     } finally {
       setLoading(false);

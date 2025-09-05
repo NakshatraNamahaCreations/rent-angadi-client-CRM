@@ -41,8 +41,8 @@ const Sidebars = () => {
     // { key: "clients", name: "Clients", path: "/client", icon: FaUserFriends },
     { key: "executiveManagement", name: "Executive Management", path: "/executive-management", icon: MdInventory },
     { key: "addNewEnquiry", name: "Add Enquiry", path: "/add-new-enquiry", icon: MdInventory },
+    { key: "enquiryList", name: "Enquiry List", path: "/enquiry-list", icon: MdOutlineSupportAgent },
     { key: "viewOrders", name: "View Orders", path: "/view-orders", icon: MdInventory },
-    // { key: "enquiryList", name: "Enquiry List", path: "/enquiry-list", icon: MdOutlineSupportAgent },
     // { key: "enquiryCalendar", name: "Enquiry Calendar", path: "/enquiry-calender", icon: FaCalendarAlt },
     // { key: "quotation", name: "Quotation", path: "/quotation", icon: FaFileInvoiceDollar },
     // { key: "orders", name: "Orders", path: "/orders", icon: FaShoppingBag },
@@ -139,7 +139,7 @@ const Sidebars = () => {
       }}
     >
       <div className="w-100 d-flex justify-content-center" style={{ backgroundColor: "black" }}>
-        <Link to="/dashboard">
+        <Link to="/view-orders">
           <img
             src={logo}
             alt="logo"
@@ -164,7 +164,7 @@ const Sidebars = () => {
           </li>
         ))}
       </ul>
-    </div>
+    </div >
   );
 };
 

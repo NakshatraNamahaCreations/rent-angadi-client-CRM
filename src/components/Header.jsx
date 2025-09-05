@@ -209,7 +209,7 @@ import {
   FaSignOutAlt,
   FaUser,
 } from "react-icons/fa";
-import { Button, Card } from "react-bootstrap";
+import { Button, Card, Dropdown } from "react-bootstrap";
 
 const Header = () => {
   const location = useLocation();
@@ -309,6 +309,27 @@ const Header = () => {
       {/* <div className="position-relative">
         <FaUserCircle className="fs-3" style={{ cursor: "pointer" }} />
       </div> */}
+
+      <Dropdown>
+        <Dropdown.Toggle
+          variant=""
+          className="position-relative"
+          style={{ padding: "0.5rem", cursor: "pointer" }}
+          id="user-dropdown"
+        >
+          <FaUserCircle className="fs-3" />
+        </Dropdown.Toggle>
+
+        <Dropdown.Menu align="end">
+          <Dropdown.Item onClick={() => {
+            sessionStorage.clear();
+            window.location.reload()
+          }}>
+            <FaSignOutAlt className="me-2" />
+            Logout
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
     </div>
   );
 };

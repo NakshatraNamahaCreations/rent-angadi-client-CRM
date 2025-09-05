@@ -1,11 +1,12 @@
 export const AuthManager = {
-  setAuthData: (token, permissions) => {
+  setAuthData: (token, permissions, user) => {
     console.log(`token: `, token);
     console.log(`permissions: `, permissions);
     const expiryTime = new Date().getTime() + 7200000; // 2 hours from now    
 
     sessionStorage.setItem('token', token);
     sessionStorage.setItem('permissions', JSON.stringify(permissions));
+    sessionStorage.setItem('user', JSON.stringify(user));
     sessionStorage.setItem('expiryTime', expiryTime);
 
 
@@ -29,13 +30,14 @@ export const AuthManager = {
   getAuthData: () => {
     const token = sessionStorage.getItem('token');
     const permissions = JSON.parse(sessionStorage.getItem('permissions'));
+    const user = JSON.parse(sessionStorage.getItem('user'));
     const expiryTime = sessionStorage.getItem('expiryTime');
     if (!expiryTime || new Date().getTime() > expiryTime) {
       sessionStorage.clear()
       window.location.reload();
       return null;
     }
-    return { token, permissions, expiryTime };
+    return { token, permissions, user, expiryTime };
   },
 
   clearAuthData: () => {

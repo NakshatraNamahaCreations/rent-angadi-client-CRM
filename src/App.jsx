@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 import "./App.css";
 import "react-calendar/dist/Calendar.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import Dashboard from "./pages/Dashboard";
+// import Dashboard from "./pages/Dashboard";
 import Master from "./pages/Master";
 import Login from "./pages/Login.jsx";
 // import Banner from "./pages/Banner/Banner.jsx";
