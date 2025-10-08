@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Layout from "./components/Layout";
 import { Toaster } from "react-hot-toast";
 import "./App.css";
@@ -38,6 +38,7 @@ import DamagedProductList from "./pages/Product/DamagedProductList.jsx";
 import AdminRights from "./pages/Admin/AdminRights.jsx";
 import AdminDetails from "./pages/Admin/AdminDetails.jsx";
 import ExecutiveManagement from "./pages/Admin/ExecutiveManagement.jsx";
+import { AuthManager } from "./utils/auth.js";
 
 function App() {
   // Use state to trigger re-render on login/logout
@@ -68,6 +69,18 @@ function App() {
     setIsLoggedIn(false);
   };
 
+  // PrivateRoute to protect routes
+  const PrivateRoute = () => {
+    const { user } = AuthManager.getAuthData() || {};
+    const allowedRoles = ['client']
+    if (!allowedRoles.includes(user.role)) {
+      return <Navigate to="/" />;
+    }
+
+    // If the user is allowed, render the requested component
+    return <Outlet />;
+  };
+
   return (
     <Router>
       <Toaster position="top-right" />
@@ -83,7 +96,12 @@ function App() {
         })()}>
           <Routes>
             {/* <Route path="/" element={<Dashboard />} /> */}
-            <Route path="/executive-management" element={<ExecutiveManagement />} />
+
+            {/* Protect the ExecutiveManagement route */}
+            <Route element={<PrivateRoute redirectTo="/login" />}>
+              <Route path="/executive-management" element={<ExecutiveManagement />} />
+            </Route>
+
             {/* <Route path="/dashboard" element={<Dashboard />} /> */}
             {/* <Route path="/product-management" element={<ProductManagement />} /> */}
             {/* <Route path="/add-product" element={<AddProduct />} /> */}
@@ -112,6 +130,10 @@ function App() {
             {/* Redirect /login to dashboard if already logged in */}
             <Route path="/login" element={<Navigate to="/" />} />
             <Route path="/" element={<Navigate to="/view-orders" />} />
+            
+            {/* No matching routes found */}
+            <Route path="*" element={<Navigate to="/" />} />
+            
             {/* <Route path="/quotation/invoice/:id" element={<QuotationInvoice />} /> */}
           </Routes>
         </Layout>

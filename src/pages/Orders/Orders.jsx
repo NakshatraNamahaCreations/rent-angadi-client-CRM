@@ -30,7 +30,7 @@ const Orders = () => {
     const fetchOrders = async () => {
       try {
         const token = sessionStorage.getItem("token");
-        console.log(`orders page token: `, token);
+        // console.log(`orders page token: `, token);
         const res = await axios.get(`${ApiURL}/order/my-orders-token`, {
           headers: {
             Authorization: `Bearer ${token}`,

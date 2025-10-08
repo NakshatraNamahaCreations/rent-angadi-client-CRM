@@ -15,6 +15,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 import { toast } from "react-hot-toast";
+import { AuthManager } from "../../utils/auth";
 
 const deliveryDismantleSlots = [
   "Select Delivery & Dismantle Slots",
@@ -43,7 +44,9 @@ const AddNewEnquiry = () => {
   const [clientData, setClientData] = useState([]);
   // Form state
   const [company, setCompany] = useState("");
+  const [companyId, setCompanyId] = useState("");
   const [executive, setExecutive] = useState("");
+  const [executiveId, setExecutiveId] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [dismantleDate, setDismantleDate] = useState("");
   const [venue, setVenue] = useState("");
@@ -59,10 +62,10 @@ const AddNewEnquiry = () => {
   const [ClientNo, setClientNo] = useState();
   const [clientName, setClientName] = useState("");
   const [Address, setAddress] = useState();
-  const [enquiryDate, setEnquiryDate] = useState("06-09-2025");
-  const [endDate, setEndDate] = useState("06-12-2025");
+  const [enquiryDate, setEnquiryDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [ExecutiveName, setExecutiveName] = useState("");
-  const [placeaddress, setPlaceaddress] = useState("get 1");
+  const [placeaddress, setPlaceaddress] = useState("");
   const [selectslots, setSelectslots] = useState("");
   const [deliveryTimeSlot, setDeliveryTimeSlot] = useState("");
   const [deliverySlot, setDeliverySlot] = useState("");
@@ -71,6 +74,9 @@ const AddNewEnquiry = () => {
   const [availableDeliverySlots, setAvailableDeliverySlots] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [userRole, setUserRole] = useState("");
+  const [loading, setLoading] = useState(false);
+  console.log(`clientData`, clientData);
+  const { user } = AuthManager.getAuthData() || {};
 
   // Selected products (persisted)
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -103,11 +109,13 @@ const AddNewEnquiry = () => {
 
   // Reset executive if company changes and executive not in list
   useEffect(() => {
-    const client = clientData.find((c) => c.clientName === company);
+    // const client = clientData.find((c) => c.clientName === company);    
+    const client = clientData.find((c) => c._id === companyId);
     if (
       client &&
       client.executives &&
-      !client.executives.some((ex) => ex.name === executive)
+      // !client.executives.some((ex) => ex.name === executive)
+      !client.executives.some((ex) => ex._id === executiveId)
     ) {
       setExecutive("");
     }
@@ -231,14 +239,16 @@ const AddNewEnquiry = () => {
 
     // Validation (add more as needed)
     if (
-      !company ||
-      (!executive && userRole !== 'client') ||
+      !companyId ||
+      // (chosenClient.executives.length > 0 && !executive) ||
+      (user.role !== 'client' && !executiveId) ||
       !deliveryDate ||
       !dismantleDate ||
       !selectedSlot ||
       !venue ||
       selectedProducts.length === 0
     ) {
+      console.log(`choose all fields `,);
       alert("Please fill all required fields and select at least one product.");
       return;
     }
@@ -247,6 +257,27 @@ const AddNewEnquiry = () => {
       alert("Delivery date cannot be after Dismantle date");
       return;
     }
+
+    const chosenClient = clientData.find((c) => c._id === companyId);
+    const clientId = chosenClient._id
+
+    if (!chosenClient) {
+      toast.error("Company not found");
+      return;
+    }
+
+    const executives = chosenClient.executives;
+
+    let chosenExecutive = ''
+    if (executives.length === 0) {
+      chosenExecutive = ''
+    } else {
+      chosenExecutive = executives.find((e) => e._id === executiveId)
+    }
+
+    const executivePhoneNumber = chosenExecutive?.phoneNumber;
+
+
 
     // Prepare products array for API
     const Products = selectedProducts.map((p) => ({
@@ -257,10 +288,18 @@ const AddNewEnquiry = () => {
       total: (parseInt(p.qty, 10) || 1) * (p.ProductPrice || p.price),
     }));
 
-    const clientId = clientData[0]._id;
-    const executiveId = userRole !== 'client' ? clientData[0].executives[0]._id : "";
-    const executivePhoneNumber = userRole !== 'client' ? clientData[0].executives[0].phoneNumber : "";
+    // const clientId = clientData.find((c) => c.name === company)?._id;
+    // console.log(`clientId: `, clientId);
+    // const executiveId = clientData.find((c) => c.name === company)?.executives?.find((e) => e.name === executive)?._id;
+    // console.log(`executiveId: `, executiveId);
+    // const executivePhoneNumber = clientData.find((c) => c.name === company)?.executives?.find((e) => e.name === executive)?.phoneNumber;
+    // console.log(`executivePhoneNumber: `, executivePhoneNumber);
 
+
+
+
+
+    setLoading(true);
     try {
       const config = {
         url: "/Enquiry/createEnquiry",
@@ -268,16 +307,16 @@ const AddNewEnquiry = () => {
         baseURL: ApiURL,
         headers: { "content-type": "application/json" },
         data: {
-          clientName: company,
+          clientName: chosenClient.name,
           clientId,
-          executiveId,
+          executiveId: chosenExecutive?._id,
           products: Products,
           category: subCategory,
           discount: discount,
           GrandTotal: grandTotal,
           GST,
           clientNo: executivePhoneNumber,
-          executivename: executive,
+          executivename: chosenExecutive?.name,
           address: venue,
           enquiryDate: deliveryDate
             ? moment(deliveryDate).format("DD-MM-YYYY")
@@ -289,7 +328,11 @@ const AddNewEnquiry = () => {
           placeaddress: placeaddress,
         },
       };
-      console.log(`config: `, config);
+      console.log(`config: `, config.data);
+
+      // toast.success("add enquiry executed")
+      // return
+
       const response = await axios(config);
       if (response.status === 200) {
         // Clear form state
@@ -342,6 +385,8 @@ const AddNewEnquiry = () => {
       // } else {
       //   alert("An error occurred. Please try again later.");
       // }
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -364,13 +409,14 @@ const AddNewEnquiry = () => {
                     <Form.Group>
                       <Form.Label>Company Name</Form.Label>
                       <Form.Select
-                        value={company}
-                        onChange={(e) => setCompany(e.target.value)}
+                        value={companyId}
+                        onChange={(e) => setCompanyId(e.target.value)}
                       >
                         <option value="">Select Company Name</option>
-                        {console.log(`clientData`, clientData)}
+                        {/* {console.log(`clientData`, clientData)} */}
                         {clientData.map((c) => (
-                          <option key={c.phoneNumber} value={c.name}>
+                          // <option key={c.phoneNumber} value={c.name}>
+                          <option key={c._id} value={c._id}>
                             {c.name}
                           </option>
                         ))}
@@ -378,34 +424,34 @@ const AddNewEnquiry = () => {
                     </Form.Group>
                   </Col>
                   {/* <Col md={2} className="d-flex align-items-end ">
-                    <Button
-                      size="sm"
-                      style={{
-                        backgroundColor: "#BD5525",
-                        border: "none",
-                        width: "100%",
-                        transition: "background 0.2s",
-                      }}
-                      className="w-100 add-btn"
-                      onClick={() => navigate("/client")}
-                    >
-                      Add Client
-                    </Button>
-                  </Col> */}
+                      <Button
+                        size="sm"
+                        style={{
+                          backgroundColor: "#BD5525",
+                          border: "none",
+                          width: "100%",
+                          transition: "background 0.2s",
+                        }}
+                        className="w-100 add-btn"
+                        onClick={() => navigate("/client")}
+                      >
+                        Add Client
+                      </Button>
+                    </Col> */}
                   <Col md={6}>
                     <Form.Group>
                       <Form.Label>Executive Name</Form.Label>
                       <Form.Select
-                        value={executive}
-                        onChange={(e) => setExecutive(e.target.value)}
-                        disabled={!company || userRole === 'client'}
+                        value={executiveId}
+                        onChange={(e) => setExecutiveId(e.target.value)}
+                        disabled={!companyId}
                       >
                         <option value="">Select Executive Name</option>
-                        {company &&
+                        {companyId &&
                           clientData
-                            .find((c) => c.name === company)
+                            .find((c) => c._id === companyId)
                             ?.executives?.map((ex) => (
-                              <option key={ex.name} value={ex.name}>
+                              <option key={ex._id} value={ex._id}>
                                 {ex.name}
                               </option>
                             ))}
@@ -734,9 +780,10 @@ const AddNewEnquiry = () => {
                     transition: "background 0.2s",
                   }}
                   className=" add-btn"
+                  disabled={loading}
                   type="submit"
                 >
-                  Submit
+                  {loading ? "Submitting..." : "Submit"}
                 </Button>
               </Col>
             </Row>

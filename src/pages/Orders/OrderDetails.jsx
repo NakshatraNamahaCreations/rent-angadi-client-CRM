@@ -1071,17 +1071,17 @@ const OrderDetails = () => {
                   </div>
                 )}
                 {/* {!pdfMode && ( */}
-                <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
+                {/* <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                   <span style={labelStyle}>Grand Total: </span>
                   <span style={valueStyle}>₹ {grandTotal}</span>
-                </div>
+                </div> */}
                 {/* )} */}
-                <div
+                {/* <div
                   className="mb-1"
                   style={{ display: "flex", gap: "10px", alignItems: "center", lineHeight: "1.2" }}
                 >
                   <span style={labelStyle}>Roundoff:</span>
-                  <span style={valueStyle}>₹ {roundOff}</span>
+                  <span style={valueStyle}>₹ {roundOff}</span> */}
                   {/* {!isEditingRoundOff ? (
                     <>
                       <span style={valueStyle}>₹ {roundOff}</span>
@@ -1119,15 +1119,15 @@ const OrderDetails = () => {
                       </Button>
                     </div>
                   )} */}
-                </div>
-                <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
+                {/* </div> */}
+                {/* <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                   <span style={labelStyle}>paid so far:</span>
                   <span style={valueStyle}>₹ {amountPaid}</span>
                 </div>
                 <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                   <span style={labelStyle}>remaining pay:</span>
                   <span style={valueStyle}>₹ {amountPending}</span>
-                </div>
+                </div> */}
               </Col>
             </Row>
             <hr className="my-3" />
@@ -1173,8 +1173,8 @@ const OrderDetails = () => {
                     {!pdfMode && <th>Available Stock</th>}
                     <th>Selected Qty</th>
                     <th>Days</th>
-                    <th>Price/Qty</th>
-                    <th>Total</th>
+                    {/* <th>Price/Qty</th> */}
+                    {/* <th>Total</th> */}
                     {/* {!pdfMode && <th>Action</th>} */}
                   </tr>
                 </thead>
@@ -1386,10 +1386,10 @@ const OrderDetails = () => {
                           )}
                         </td>
                         <td>{prod.days}</td>
-                        <td>₹{(prod.ProductPrice)}</td>
-                        <td>₹{prod.productTotal}</td>
+                        {/* <td>₹{(prod.ProductPrice)}</td> */}
+                        {/* <td>₹{prod.productTotal}</td> */}
                         {/* {(idx === 0) && console.log(`prod.total * days: ${prod.total * days} prod.productName: ${prod.productName}prod.total: ${prod.total}`)} */}
-                        {!pdfMode && (
+                        {/* {!pdfMode && (
                           <td>
                             {editIdx === idx ? (
                               <>
@@ -1440,7 +1440,7 @@ const OrderDetails = () => {
                                 </Button>
                               </>
                             )}
-                          </td>)}
+                          </td>)} */}
                       </tr>
                     );
                   })}
