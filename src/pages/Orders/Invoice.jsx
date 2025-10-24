@@ -5,13 +5,8 @@ import axios from "axios";
 import { useParams, useLocation } from "react-router-dom";
 import { ApiURL, ImageApiURL } from "../../api";
 import html2pdf from "html2pdf.js";
+import { parseDate } from "../../utils/parseDates";
 
-// Function to parse date from DD-MM-YYYY format
-const parseDate = (str) => {
-  if (!str) return null; // If date is undefined or null, return null.
-  const [day, month, year] = str.split("-"); // Assuming date format is DD-MM-YYYY
-  return new Date(`${year}-${month}-${day}`); // Convert to YYYY-MM-DD format for JavaScript Date
-};
 
 const Invoice = () => {
   const { id } = useParams();

@@ -62,12 +62,12 @@ const ExecutiveManagement = () => {
   };
 
   const createExecutive = async () => {
-    if (!displayname || !phoneNumber || !email) {
+    if (!displayname || !phoneNumber) {
       alert("Please fill all fields");
       return;
     }
 
-    if (!data && (!password || !email)) {
+    if (!data && (!password)) {
       alert("Password is required for new users");
       return;
     }
@@ -209,7 +209,7 @@ const ExecutiveManagement = () => {
               <tbody>
                 {filterdata?.map((row, index) => (
                   <tr key={row._id}>
-                    {console.log("row: ", row)}
+                    {/* {console.log("row: ", row)} */}
                     <td>{index + 1}</td>
                     <td>{row.name}</td>
                     <td>{row.email}</td>

@@ -9,10 +9,10 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import Master from "./pages/Master";
 import Login from "./pages/Login.jsx";
 // import Banner from "./pages/Banner/Banner.jsx";
-import ProductManagement from "./pages/Product/ProductManagement.jsx";
-import AddProduct from "./pages/Product/AddProduct.jsx";
-import Client from "./pages/Client/Client.jsx";
-import AddClient from "./pages/Client/AddClient.jsx";
+// import ProductManagement from "./pages/Product/ProductManagement.jsx";
+// import AddProduct from "./pages/Product/AddProduct.jsx";
+// import Client from "./pages/Client/Client.jsx";
+// import AddClient from "./pages/Client/AddClient.jsx";
 import Orders from "./pages/Orders/Orders.jsx";
 import OrderDetails from "./pages/Orders/OrderDetails.jsx";
 import EnquiryList from "./pages/Enquiry/EnquiryList.jsx";
@@ -22,23 +22,24 @@ import EnquiryDetails from "./pages/Enquiry/EnquiryDetails.jsx";
 import EnquiryCalender from "./pages/Enquiry/EnquiryCalender.jsx";
 import EnquiryByDate from "./pages/Enquiry/EnquiryByDate.jsx";
 import TermsAndConditions from "./pages/Terms&Conditions/TermsAndConditions.jsx";
-import Quotation from "./pages/Quatation/Quotation.jsx";
-import PaymentReport from "./pages/Payment/PaymentReport.jsx";
-import RefurbishmentReport from "./pages/Refurbishment/RefurbishmentReport.jsx";
-import RefurbishmentInvoice from "./pages/Refurbishment/RefurbishmentInvoice.jsx";
+// import Quotation from "./pages/Quatation/Quotation.jsx";
+// import PaymentReport from "./pages/Payment/PaymentReport.jsx";
+// import RefurbishmentReport from "./pages/Refurbishment/RefurbishmentReport.jsx";
+// import RefurbishmentInvoice from "./pages/Refurbishment/RefurbishmentInvoice.jsx";
 import InventoryProduct from "./pages/InventoryProduct/InventoryProductList.jsx";
 import Invoice from "./pages/Orders/Invoice.jsx";
-import ProductDetails from "./pages/Product/ProductDetails.jsx";
-import QuotationDetails from "./pages/Quatation/QuotationDetails.jsx";
-import ProductReports from "./pages/reports/ProductReports";
-import QuotationInvoice from "./pages/Quatation/QuotationInvoice.jsx";
-import ClientReports from "./pages/reports/ClientReports ";
-import Reports from "./pages/reports/Reports";
-import DamagedProductList from "./pages/Product/DamagedProductList.jsx";
+// import ProductDetails from "./pages/Product/ProductDetails.jsx";
+// import QuotationDetails from "./pages/Quatation/QuotationDetails.jsx";
+// import ProductReports from "./pages/reports/ProductReports";
+// import QuotationInvoice from "./pages/Quatation/QuotationInvoice.jsx";
+// import ClientReports from "./pages/reports/ClientReports ";
+// import Reports from "./pages/reports/Reports";
+// import DamagedProductList from "./pages/Product/DamagedProductList.jsx";
 import AdminRights from "./pages/Admin/AdminRights.jsx";
 import AdminDetails from "./pages/Admin/AdminDetails.jsx";
 import ExecutiveManagement from "./pages/Admin/ExecutiveManagement.jsx";
 import { AuthManager } from "./utils/auth.js";
+import OrderSheet from "./pages/Orders/OrderSheet.jsx";
 
 function App() {
   // Use state to trigger re-render on login/logout
@@ -111,6 +112,7 @@ function App() {
             {/* <Route path="/add-client" element={<AddClient />} /> */}
             <Route path="/view-orders" element={<Orders />} />
             <Route path="/orders-details/:id" element={<OrderDetails />} />
+            <Route path="/order-sheet/:id" element={<OrderSheet />} />
             {/* <Route path="/invoice/:id" element={<Invoice />} /> */}
             <Route path="/enquiry-list" element={<EnquiryList />} />
             {/* <Route path="/enquiry-calender" element={<EnquiryCalender />} /> */}

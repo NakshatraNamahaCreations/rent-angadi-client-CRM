@@ -22,22 +22,8 @@ const deliveryDismantleSlots = [
   "Slot 1: 7:00 AM to 11:00 PM",
   "Slot 2: 11:00 PM to 11:45 PM",
   "Slot 3: 7:30 AM to 4:00 PM",
+  "Slot 4: 2:45 PM to 11:45 PM",
 ];
-
-const ENQUIRY_PRODUCTS_KEY = "enquiry_selected_products";
-
-function getStoredProducts() {
-  try {
-    const data = localStorage.getItem(ENQUIRY_PRODUCTS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-}
-
-function setStoredProducts(products) {
-  localStorage.setItem(ENQUIRY_PRODUCTS_KEY, JSON.stringify(products));
-}
 
 const AddNewEnquiry = () => {
   const navigate = useNavigate();
@@ -101,11 +87,6 @@ const AddNewEnquiry = () => {
     fetchClients();
     fetchProducts();
   }, []);
-
-  // Persist selected products
-  useEffect(() => {
-    setStoredProducts(selectedProducts);
-  }, [selectedProducts]);
 
   // Reset executive if company changes and executive not in list
   useEffect(() => {
@@ -236,6 +217,7 @@ const AddNewEnquiry = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.clear()
 
     // Validation (add more as needed)
     if (
@@ -253,10 +235,13 @@ const AddNewEnquiry = () => {
       return;
     }
 
-    if (deliveryDate > dismantleDate) {
-      alert("Delivery date cannot be after Dismantle date");
-      return;
-    }
+    console.log(`deliveryDate: `, deliveryDate);
+    console.log(`dismantleDate: `, dismantleDate);
+
+    // if (deliveryDate > dismantleDate) {
+    //   alert("Delivery date cannot be after Dismantle date");
+    //   return;
+    // }
 
     const chosenClient = clientData.find((c) => c._id === companyId);
     const clientId = chosenClient._id
@@ -277,6 +262,16 @@ const AddNewEnquiry = () => {
 
     const executivePhoneNumber = chosenExecutive?.phoneNumber;
 
+    // Validate product quantities: must be >= 1 and not empty
+    const hasInvalidQty = selectedProducts.some((p) => {
+      const q = parseInt(p.qty, 10);
+      return !p.qty || Number.isNaN(q) || q < 1;
+    });
+
+    if (hasInvalidQty) {
+      toast.error("Each product must have quantity of at least 1");
+      return;
+    }
 
 
     // Prepare products array for API
@@ -344,7 +339,6 @@ const AddNewEnquiry = () => {
         setSelectedSlot("");
         setSubCategory("");
         setSelectedProducts([]);
-        setStoredProducts([]);
         setProductSearch("");
         setDiscount(0);
         setGST(0);
@@ -371,7 +365,7 @@ const AddNewEnquiry = () => {
       console.error("error: ", error);
       // console.log(`toast err: `, error?.response?.data?.error); 
       // toast.error("An error occurred: ", error?.response?.data?.error);
-      const errorMessage = error?.response?.data?.error ||
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.message ||
         (error?.message ? `Error: ${error.message}` : "An unexpected error occurred");
       console.log(`Error message: ${errorMessage}`);
       toast.error(errorMessage);

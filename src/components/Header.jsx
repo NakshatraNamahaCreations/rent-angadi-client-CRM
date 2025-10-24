@@ -256,8 +256,8 @@ const Header = () => {
       setCurrentTab("Quotation Invoice");
     } else if (matchPath("/executive-management", path)) {
       setCurrentTab("Executive Management");
-    } else if (matchPath("/view-orders", path)) {
-      setCurrentTab("View Orders");
+    } else if (matchPath("/order-sheet/:id", path)) {
+      setCurrentTab("Order Sheet");
     } else {
       setCurrentTab("Dashboard");
     }

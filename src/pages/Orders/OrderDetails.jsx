@@ -19,6 +19,7 @@ import { toast } from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { parseDate } from "../../utils/parseDates";
 
 const labelStyle = {
   color: "#666",
@@ -28,17 +29,17 @@ const labelStyle = {
 };
 const valueStyle = { color: "#222", fontSize: 13, fontWeight: 400 };
 
-const parseDate = (str) => {
-  // console.log("parseDate str error: ", str)
-  if (!str) return null; // If date is undefined or null, return null.
-  const [day, month, year] = str.split("-"); // Assuming date format is DD-MM-YYYY
-  return new Date(`${year}-${month}-${day}`); // Convert to YYYY-MM-DD format for JavaScript Date
-};
+// const parseDate = (str) => {
+//   // console.log("parseDate str error: ", str)
+//   if (!str) return null; // If date is undefined or null, return null.
+//   const [day, month, year] = str.split("-"); // Assuming date format is DD-MM-YYYY
+//   return new Date(`${year}-${month}-${day}`); // Convert to YYYY-MM-DD format for JavaScript Date
+// };
 
 const formatDateToDDMMYYYY = (date) => {
   if (!date) return null; // If date is null or undefined, return null.
   if (!(date instanceof Date) || isNaN(date)) {
-    console.log("formatDateToDDMMYYYY date:", date);
+    // console.log("formatDateToDDMMYYYY date:", date);
     return null;
   }
   const day = String(date.getDate()).padStart(2, "0"); // Add leading zero if needed
@@ -55,6 +56,8 @@ const OrderDetails = () => {
   // States for order details
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [addProductLoading, setAddProductLoading] = useState(false);
+  const [addPaymentLoading, setAddPaymentLoading] = useState(false);
   const [products, setProducts] = useState([]);
   const [showRefModal, setShowRefModal] = useState(false);
 
@@ -168,7 +171,7 @@ const OrderDetails = () => {
           return slot;
         });
 
-        console.log("order slots: ", order.slots[0].products[0]);
+        console.log("order.slots[0].products: ", order.slots[0].products);
 
         // You can also update the top-level `products` if you want
         if (order?.products?.length) {
@@ -486,6 +489,7 @@ const OrderDetails = () => {
 
     // Log the request data to console
     console.log("Request Data to be sent:", requestData);
+    setAddProductLoading(true)
 
     try {
       // Send the updated quantity to the backend for processing
@@ -514,6 +518,7 @@ const OrderDetails = () => {
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setShowAdd(false);
+      setAddProductLoading(false)
     }
   };
 
@@ -579,8 +584,8 @@ const OrderDetails = () => {
           quantity: editQty, // The new quantity
           quoteDate: order.slots[0].quoteDate, // Start date of the slot
           endDate: order.slots[0].endDate, // End date of the slot
-          productQuoteDate: productQuoteDate || order.slots[0].quoteDate,
-          productEndDate: productEndDate || order.slots[0].endDate,
+          productQuoteDate: productQuoteDate || order.slots[0].products[idx]?.productQuoteDate || order.slots[0].quoteDate,
+          productEndDate: productEndDate || order.slots[0].products[idx]?.productEndDate || order.slots[0].endDate,
           productSlot, // Slot information
         }
       );
@@ -611,7 +616,7 @@ const OrderDetails = () => {
     } catch (error) {
       // Handle any errors during the Axios request
       console.error("Error updating order:", error);
-      toast.error("An error occurred while updating the order.");
+      toast.error(error?.response?.data?.message || "An error occurred while updating the order.");
     }
 
     // Reset the editing state after successful update
@@ -787,7 +792,7 @@ const OrderDetails = () => {
         if (isNaN(days) || days < 1) days = 1;
       }
 
-      const price = prod.ProductPrice || 0;
+      const price = prod.productPrice || 0;
       prod.days = days;
       prod.productTotal = price * days * prod.quantity;
       console.log(`${prod.productName} productTotal: ${prod.productTotal}`)
@@ -833,7 +838,8 @@ const OrderDetails = () => {
   const grandTotal = order ? calculateGrandTotal(order) : 0;
 
   useEffect(() => {
-    const paid = order?.payments.reduce((acc, curr) => acc + curr?.advancedAmount, 0)
+    // const paid = order?.payments.reduce((acc, curr) => acc + curr?.advancedAmount, 0)
+    const paid = (order?.payments || []).reduce((acc, curr) => acc + curr?.advancedAmount, 0);
     setAmountPaid(paid)
 
     if (order?.roundOff !== 0) {
@@ -908,30 +914,84 @@ const OrderDetails = () => {
   };
 
   const handleDownloadPDF = async () => {
-    setPdfMode(true); // activate clean PDF mode
-
-    setTimeout(async () => {
-      const input = pdfRef.current;
-      // const canvas = await html2canvas(input, { scale: 2 });
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`order-${order.invoiceId || "details"}.pdf`);
-
-      setPdfMode(false); // deactivate after export
-    }, 300); // wait to let UI re-render without unnecessary columns
+    // Navigate to dedicated Order Sheet view with prepared data
+    if (!order) return;
+    const derivedItems = (order?.slots?.[0]?.products || []).map((p) => {
+      // derive days from per-product dates
+      let days = 1;
+      const start = parseDate(p.productQuoteDate);
+      const end = parseDate(p.productEndDate);
+      if (start && end) {
+        const diff = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        days = isNaN(diff) || diff < 1 ? 1 : diff;
+      }
+      return {
+        productId: p.productId,
+        productName: p.productName,
+        productSlot: p.productSlot || order?.slots?.[0]?.quoteTime,
+        image: p.ProductIcon,
+        // pricePerUnit: Number((p.total || 0) / (p.quantity || 1)) || 0,
+        quantity: p.quantity,
+        days,
+        // amount: Number((p.total || 0) / (p.quantity || 1)) || 0,    
+      };
+    });
+    navigate(`/order-sheet/${order._id}`, { state: { order, items: derivedItems, productDates } });
   };
 
+  const handlePaymentInputChange = async (e) => {
+    // const numericValue = parseFloat(value) || 0;
+    // const maxAmount = parseFloat(quotation?.finalTotal) || 0;
+    // const finalValue = Math.min(numericValue, maxAmount);
+
+    // setPaymentData((prev) => ({ ...prev, amount: e.target.value }))
+
+    console.log(`paymentData: `, paymentData);
+    const { name, value } = e.target;
+
+    if (name === 'amount') {
+      console.log(`changing amount: `, paymentData.amount);
+      const numericValue = parseFloat(value) || 0;
+      const maxAmount = parseFloat(amountPending) || 0;
+      const finalValue = Math.min(numericValue, maxAmount);
+      console.log(`grandTotal: `, grandTotal);
+      console.log(`numericValue: `, numericValue);
+      console.log(`finalValue: `, finalValue);
+      setPaymentData((prev) => ({ ...prev, amount: finalValue.toString() }));
+    } else {
+      setPaymentData((prev) => ({ ...prev, [name]: value }));
+    }
+  }
+
   const handleAddPayment = async () => {
+
+    // if (!paymentData.amount || paymentData.amount === '' || paymentData.amount === '0' || paymentData.amount === 0) {
+    //   console.log(`typeof payment.amount `, typeof paymentData.amount);
+    //   toast.error("Amount cannot be empty or zero")
+    //   return
+    // } else if (!paymentData.mode) {
+    //   toast.error("Please select a payment mode")
+    //   return
+    // }
+    if (!paymentData.amount || paymentData.amount === '' || paymentData.amount === '0' || paymentData.amount === 0) {
+      console.log(`typeof payment.amount `, typeof paymentData.amount);
+      toast.error("Amount cannot be empty or zero")
+      return
+    } else if (paymentData.amount > order?.GrandTotal) {
+      toast.error(`Max allowed to be paid is: ${order?.GrandTotal}`)
+      return
+    }
+
+    if (paymentData.status === 'Online' && (!paymentData.mode)) {
+      toast.error("Please enter a payment mode")
+      return
+    }
+
+    // toast.success(`executed total: Rs. ${order?.GrandTotal}`)
+    // return
+
+    setAddPaymentLoading(true)
+
     try {
       // First, make the API call to fetch payment data
       const orderDetails = {
@@ -961,6 +1021,7 @@ const OrderDetails = () => {
       // Optionally handle any errors that occur during the API request
     } finally {
       handleCloseGenerateModal();
+      setAddPaymentLoading(false);
     }
   };
 
@@ -1015,6 +1076,7 @@ const OrderDetails = () => {
     "Slot 1: 7:00 AM to 11:00 PM",
     "Slot 2: 11:00 PM to 11:45 PM",
     "Slot 3: 7:30 AM to 4:00 PM",
+    "Slot 4: 2:45 PM to 11:45 PM",
   ];
 
   return (
@@ -1054,35 +1116,42 @@ const OrderDetails = () => {
                   <span style={labelStyle}>Address: </span>
                   <span style={valueStyle}>{order.placeaddress}</span>
                 </div> */}
-                <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
-                  <span style={labelStyle}>Venue address:</span>
-                  <span style={valueStyle}>{order.Address}</span>
-                </div>
-              </Col>
-              <Col xs={12} md={6}>
                 {!pdfMode && (
                   <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                     <span style={labelStyle}>Order Status: </span>
                     <span
-                      style={{ ...valueStyle, color: "#1dbf73", fontWeight: 600 }}
+                      style={{ ...valueStyle, color: order.orderStatus === "Confirm" ? "#1dbf73" : "#E53935", fontWeight: 600 }}
                     >
                       {order.orderStatus}
                     </span>
                   </div>
                 )}
+              </Col>
+              <Col xs={12} md={6}>
                 {/* {!pdfMode && ( */}
-                {/* <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
+                <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
+                  <span style={labelStyle}>Venue address:</span>
+                  <span style={valueStyle}>{order.Address}</span>
+                </div>
+                <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                   <span style={labelStyle}>Grand Total: </span>
                   <span style={valueStyle}>₹ {grandTotal}</span>
-                </div> */}
+                </div>
                 {/* )} */}
+                <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
+                  <span style={labelStyle}>Man power: </span>
+                  <span style={valueStyle}>₹ {order.labourecharge}</span>
+                </div>
+                <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
+                  <span style={labelStyle}>Transport: </span>
+                  <span style={valueStyle}>₹ {order.transportcharge}</span>
+                </div>
                 {/* <div
                   className="mb-1"
                   style={{ display: "flex", gap: "10px", alignItems: "center", lineHeight: "1.2" }}
                 >
                   <span style={labelStyle}>Roundoff:</span>
-                  <span style={valueStyle}>₹ {roundOff}</span> */}
-                  {/* {!isEditingRoundOff ? (
+                  {!isEditingRoundOff ? (
                     <>
                       <span style={valueStyle}>₹ {roundOff}</span>
                       <Button
@@ -1118,8 +1187,8 @@ const OrderDetails = () => {
                         <FaTimes />
                       </Button>
                     </div>
-                  )} */}
-                {/* </div> */}
+                  )}
+                </div> */}
                 {/* <div className="mb-1" style={{ display: "flex", gap: "10px" }}>
                   <span style={labelStyle}>paid so far:</span>
                   <span style={valueStyle}>₹ {amountPaid}</span>
@@ -1133,18 +1202,18 @@ const OrderDetails = () => {
             <hr className="my-3" />
             <div className="d-flex justify-content-between align-items-center mb-2">
               <span style={{ fontSize: 14, fontWeight: 600 }}>Products</span>
-              {/* {!pdfMode && (
+              {!pdfMode && (
                 <div>
-                  <Button
+                  {/* <Button
                     variant="outline-success"
                     size="sm"
                     style={{ fontSize: 12, padding: "2px 14px", marginRight: 8 }}
                     onClick={handleShowAdd}
                     disabled={order && order.orderStatus === "cancelled"}
                   >
-                    Add Product
-                  </Button>
-                  <Button
+                    {addProductLoading ? "Adding Product..." : "Add Product"}
+                  </Button> */}
+                  {/* <Button
                     variant="outline-success"
                     size="sm"
                     style={{ fontSize: 12, padding: "2px 14px" }}
@@ -1152,9 +1221,9 @@ const OrderDetails = () => {
                     disabled={order && order.orderStatus === "cancelled"}
                   >
                     Add Refurbishment
-                  </Button>
+                  </Button> */}
                 </div>
-              )} */}
+              )}
             </div>
 
 
@@ -1170,9 +1239,10 @@ const OrderDetails = () => {
                     <th>Slot Date</th>
                     <th>Product Name</th>
                     <th>Product img</th>
-                    {!pdfMode && <th>Available Stock</th>}
+                    {!pdfMode && <th>Remaining Stock</th>}
                     <th>Selected Qty</th>
                     <th>Days</th>
+                    {/* you have t comment these 2 */}
                     {/* <th>Price/Qty</th> */}
                     {/* <th>Total</th> */}
                     {/* {!pdfMode && <th>Action</th>} */}
@@ -1386,7 +1456,8 @@ const OrderDetails = () => {
                           )}
                         </td>
                         <td>{prod.days}</td>
-                        {/* <td>₹{(prod.ProductPrice)}</td> */}
+                        {/* you have t comment these 2 */}
+                        {/* <td>₹{(prod.productPrice)}</td> */}
                         {/* <td>₹{prod.productTotal}</td> */}
                         {/* {(idx === 0) && console.log(`prod.total * days: ${prod.total * days} prod.productName: ${prod.productName}prod.total: ${prod.total}`)} */}
                         {/* {!pdfMode && (
@@ -1470,7 +1541,7 @@ const OrderDetails = () => {
                 </tbody>
               </Table>
             </div>
-            {/* {!pdfMode && (
+            {!pdfMode && (
               <div className="mb-2" style={{ fontWeight: 600, fontSize: 14 }}>
                 Refurbishment Details
               </div>
@@ -1510,7 +1581,7 @@ const OrderDetails = () => {
             )}
             {!pdfMode && (
               <div className="d-flex flex-wrap gap-2 mt-3">
-                <Button
+                {/* <Button
                   variant="primary"
                   size="sm"
                   style={{ fontSize: 13, fontWeight: 600 }}
@@ -1518,8 +1589,8 @@ const OrderDetails = () => {
                   disabled={order && order.orderStatus === "cancelled"}
                 >
                   Generate Invoice
-                </Button>
-                <Button
+                </Button> */}
+                {/* <Button
                   variant="info"
                   size="sm"
                   style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}
@@ -1527,7 +1598,7 @@ const OrderDetails = () => {
                   disabled={order && order.orderStatus === "cancelled"}
                 >
                   Refurbishment Invoice
-                </Button>
+                </Button> */}
                 <Button
                   variant="primary"
                   size="sm"
@@ -1548,11 +1619,525 @@ const OrderDetails = () => {
                   Cancel Order
                 </Button>
               </div>
-            )} */}
+            )}
 
 
           </Card.Body>
         </Card>
+
+        {/* Add Product Modal */}
+        <Modal show={showAdd} onHide={handleCloseAdd} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Add Product</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+              <Form.Group className="mb-3" controlId="addProductSelect">
+                <Form.Label>Product Name</Form.Label>
+                <Select
+                  options={availableToAdd.map((p) => ({
+                    value: p._id,
+                    label: p.ProductName,
+                  }))}
+                  value={
+                    addProductId
+                      ? availableToAdd
+                        .map((p) => ({ value: p._id, label: p.ProductName }))
+                        .find(
+                          (opt) => String(opt.value) === String(addProductId)
+                        )
+                      : null
+                  }
+                  onChange={handleProductSelect}
+                  isClearable
+                  placeholder="Search product..."
+                />
+              </Form.Group>
+              <Row>
+                <Col xs={6}>
+                  <Form.Group className="mb-3" controlId="addProductStock">
+                    <Form.Label>Available Stock</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={
+                        selectedAddProduct ? selectedAddProduct.availableStock : 0
+                      }
+                      disabled
+                    />
+                  </Form.Group>
+                </Col>
+                <Col xs={6}>
+                  <Form.Group className="mb-3" controlId="addProductQty">
+                    <Form.Label>Quantity</Form.Label>
+                    <Form.Control
+                      type="number"
+                      min={1}
+                      max={selectedAddProduct?.availableStock || 1}
+                      value={addQty}
+                      disabled={!addProductId}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/^0+/, "");
+                        let qty = val === "" ? "" : Math.max(1, Number(val));
+                        if (
+                          selectedAddProduct &&
+                          qty > selectedAddProduct.availableStock
+                        ) {
+                          qty = selectedAddProduct.availableStock;
+                        }
+                        setAddQty(qty);
+                      }}
+                    />
+                    {selectedAddProduct &&
+                      addQty > selectedAddProduct.availableStock && (
+                        <div style={{ color: "red", fontSize: 12 }}>
+                          Cannot exceed available stock (
+                          {selectedAddProduct.availableStock})
+                        </div>
+                      )}
+                  </Form.Group>
+                </Col>
+                <Col xs={6}>
+                  <Form.Group className="mb-3" controlId="addProductPrice">
+                    <Form.Label>Price</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={`₹${selectedAddProduct ? selectedAddProduct.ProductPrice : 0
+                        }`}
+                      disabled
+                    />
+                  </Form.Group>
+                </Col>
+                <Col xs={6}>
+                  <Form.Group className="mb-3" controlId="addProductTotal">
+                    <Form.Label>Total Price</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={
+                        selectedAddProduct
+                          ? `₹${(addQty ? addQty : 1) *
+                          selectedAddProduct.ProductPrice
+                          }`
+                          : "₹0"
+                      }
+                      disabled
+                    />
+                  </Form.Group>
+                </Col>
+                {/* <Col xs={6}>
+                <Form.Group className="mb-3" controlId="addProductTotal">
+                  <Form.Label>choose slot</Form.Label>
+                  <Form.Select
+                    className="m-0 mt-1"
+                    value={
+                      productDates[selectedAddProduct?.productId]?.productSlot ||
+                      selectedAddProduct?.productSlot
+                    } // Default to initial slot value
+                    onChange={(e) =>
+                      handleDateChange(
+                        selectedAddProduct._id,
+                        "productSlot",
+                        e.target.value,
+                        e.target.value
+                      )
+                    }
+                  >
+                    {deliveryDismantleSlots.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col> */}
+              </Row>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={
+                !addProductId ||
+                !addQty ||
+                addQty < 1 ||
+                (selectedAddProduct && addQty > selectedAddProduct.availableStock)
+              }
+              onClick={handleAddProduct}
+            >
+              Add
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Refurbishment Modal */}
+        <Modal show={showRefModal} onHide={handleCloseRefModal} centered>
+          <Modal.Header closeButton>
+            <Modal.Title style={{ fontSize: 18, fontWeight: 600 }}>
+              Add Refurbishment
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+              <Form.Group className="mb-2">
+                <Form.Label style={{ fontSize: 14, fontWeight: 500 }}>
+                  Select Product Name <span style={{ color: "red" }}>*</span>
+                </Form.Label>
+                <Form.Select
+                  value={refProduct}
+                  onChange={(e) => {
+                    setRefProduct(e.target.value);
+                    setRefQty("");
+                    setRefPrice("");
+                    setRefDamage("");
+                  }}
+                >
+                  <option value="">Select products...</option>
+                  {products.map((prod, idx) => (
+                    <option key={idx} value={prod.productName}>
+                      {prod.productName}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+              {refProduct && (
+                <div
+                  className="mb-3"
+                  style={{
+                    background: "#f8f9fa",
+                    borderRadius: 8,
+                    padding: 10,
+                    gap: 10,
+                  }}
+                >
+                  <div style={{ minWidth: 120, fontWeight: 500 }}>
+                    {refProduct}
+                  </div>
+                  <div className="d-flex gap-2 my-2">
+                    <Form.Control
+                      type="number"
+                      min={1}
+                      max={
+                        products.find((p) => p.productName === refProduct)
+                          ?.availableStock || 1
+                      }
+                      placeholder="Quantity"
+                      value={refQty}
+                      style={{ width: 80, fontSize: 13 }}
+                      onChange={(e) => {
+                        let maxQty =
+                          products.find((p) => p.productName === refProduct)
+                            ?.availableStock || 1;
+                        let val = e.target.value.replace(/^0+/, "");
+                        if (val === "") setRefQty("");
+                        else
+                          setRefQty(Math.max(1, Math.min(Number(val), maxQty)));
+                      }}
+                    />
+                    <Form.Control
+                      type="number"
+                      min={1}
+                      placeholder="Price"
+                      value={refPrice}
+                      style={{ width: 80, fontSize: 13 }}
+                      onChange={(e) =>
+                        setRefPrice(e.target.value.replace(/^0+/, ""))
+                      }
+                    />
+                    <Form.Control
+                      type="text"
+                      placeholder="Description"
+                      value={refDamage}
+                      style={{ width: 100, fontSize: 13 }}
+                      onChange={(e) => setRefDamage(e.target.value)}
+                    />
+                    <Button
+                      variant="success"
+                      size="sm"
+                      style={{ fontWeight: 600, minWidth: 60 }}
+                      onClick={handleAddRefProduct}
+                      disabled={
+                        !refProduct ||
+                        !refQty ||
+                        !refPrice ||
+                        Number(refQty) < 1 ||
+                        Number(refPrice) < 1
+                      }
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {/* <Form.Group className="mb-2">
+                <Form.Label style={{ fontSize: 14, fontWeight: 500 }}>
+                  Shipping Address <span style={{ color: "red" }}>*</span>
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  value={shippingAddress}
+                  onChange={(e) => setShippingAddress(e.target.value)}
+                  placeholder="Enter shipping address"
+                />
+              </Form.Group>
+              <Form.Group className="mb-2">
+                <Form.Label style={{ fontSize: 14, fontWeight: 500 }}>
+                  Floor Manager
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  value={floorManager}
+                  onChange={(e) => setFloorManager(e.target.value)}
+                  placeholder="Enter floor manager"
+                />
+              </Form.Group> */}
+              <div
+                style={{ fontWeight: 600, fontSize: 15, margin: "12px 0 6px" }}
+              >
+                Added Products
+              </div>
+              <div className="table-responsive">
+                <Table
+                  bordered
+                  size="sm"
+                  style={{ background: "#fff", fontSize: 13 }}
+                >
+                  <thead>
+                    <tr style={{ background: "#f3f6fa" }}>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {addedRefProducts.map((item, idx) => (
+                      <tr key={idx}>
+                        <td>{item.productName}</td>
+                        <td>{item.qty}</td>
+                        <td>₹{item.price}</td>
+                        <td>{item.damage}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseRefModal}>
+              Close
+            </Button>
+            <Button
+              variant="primary"
+              disabled={addedRefProducts.length === 0}
+              onClick={handleRefurbishment}
+            >
+              Submit
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showGenerateModal} onHide={handleCloseGenerateModal} centered>
+          <Modal.Header style={{ borderBottom: "none", padding: "20px 20px 0" }}>
+            <Modal.Title style={{ fontWeight: "600", color: "#2c3e50" }}>
+              Payment
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body style={{ padding: "20px" }}>
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
+                  Payment
+                </Form.Label>
+                <div>
+                  <Form.Check
+                    inline
+                    label="Offline"
+                    type="checkbox"
+                    checked={paymentData.status === "Offline"}
+                    onChange={() => setPaymentData((prev) => ({ ...prev, status: "Offline" }))}
+                    style={{ marginRight: "20px" }}
+                  />
+                  <Form.Check
+                    inline
+                    label="Online"
+                    type="checkbox"
+                    checked={paymentData.status === "Online"}
+                    onChange={() => setPaymentData((prev) => ({ ...prev, status: "Online" }))}
+                  />
+                </div>
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
+                  Amount
+                </Form.Label>
+                <div className="d-flex align-items-center">
+                  <span
+                    style={{
+                      marginRight: "10px",
+                      fontSize: "1.2rem",
+                      color: "#34495e",
+                    }}
+                  >
+                    ₹
+                  </span>
+                  <Form.Control
+                    type="number"
+                    name="amount"
+                    value={paymentData.amount}
+                    max={order?.GrandTotal}
+                    onChange={handlePaymentInputChange}
+                    placeholder="0"
+                    style={{ borderRadius: "6px", borderColor: "#e0e0e0" }}
+                  />
+                </div>
+                <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
+                  Amount already Paid
+                </Form.Label>
+                {/* {console.log("payments: ", order?.payments?.reduce((acc, curr) => acc + curr?.advancedAmount, 0))} */}
+                {console.log("payments: ", (order?.payments || []).reduce((acc, curr) => acc + curr?.advancedAmount, 0))}
+                <div className="d-flex align-items-center">
+                  <span
+                    style={{
+                      marginRight: "10px",
+                      fontSize: "1.2rem",
+                      color: "#34495e",
+                    }}
+                  >
+                    ₹
+                  </span>
+                  <Form.Control
+                    type="number"
+                    name="amount"
+                    value={amountPaid}
+                    max={order?.GrandTotal}
+                    // onChange={(e) => setPaymentData((prev) => ({ ...prev, amount: e.target.value }))}
+                    placeholder="0"
+                    disabled
+                    style={{ borderRadius: "6px", borderColor: "#e0e0e0" }}
+                  />
+                </div>
+                <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
+                  Amount Pending
+                </Form.Label>
+                {/* {console.log("payments: ", order?.payments?.reduce((acc, curr) => acc + curr?.advancedAmount, 0))} */}
+                {console.log("payments: ", (order?.payments || []).reduce((acc, curr) => acc + curr?.advancedAmount, 0))}
+                <div className="d-flex align-items-center">
+                  <span
+                    style={{
+                      marginRight: "10px",
+                      fontSize: "1.2rem",
+                      color: "#34495e",
+                    }}
+                  >
+                    ₹
+                  </span>
+                  <Form.Control
+                    type="number"
+                    name="amount"
+                    value={amountPending}
+                    max={order?.GrandTotal}
+                    // onChange={(e) => setPaymentData((prev) => ({ ...prev, amount: e.target.value }))}
+                    placeholder="0"
+                    disabled
+                    style={{ borderRadius: "6px", borderColor: "#e0e0e0" }}
+                  />
+                </div>
+              </Form.Group>
+              {paymentData.status !== "Offline" && (
+                // <Form.Group className="mb-3">
+                //   <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
+                //     Payment Mode
+                //   </Form.Label>
+                //   <Form.Select
+                //     name="mode"
+                //     value={paymentData.mode}
+                //     onChange={(e) => setPaymentData((prev) => ({ ...prev, mode: e.target.value }))}
+                //     style={{ borderRadius: "6px", borderColor: "#e0e0e0" }}
+                //   >
+                //     <option value="">Select Payment Mode</option>
+                //     {/* <option value="Googlepay">Googlepay</option> */}
+                //     {/* <option value="Phonepay">Phonepay</option> */}
+                //     {/* <option value="Paytm">Paytm</option> */}
+                //     <option value="UPI">UPI</option>
+                //     <option value="Account">Account</option>
+                //     <option value="Other">Other</option>
+                //   </Form.Select>
+                // </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
+                    Payment Mode
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="mode"
+                    value={paymentData.mode}
+                    onChange={(e) => setPaymentData((prev) => ({ ...prev, mode: e.target.value }))}
+                    placeholder="Enter Payment Mode"
+                    style={{
+                      borderRadius: "6px",
+                      borderColor: "#e0e0e0",
+                    }}
+                  />
+                </Form.Group>
+              )}
+              <Form.Group className="mb-3">
+                <Form.Label style={{ fontWeight: "500", color: "#34495e" }}>
+                  Comments
+                </Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  name="comments"
+                  value={paymentData.comments}
+                  onChange={(e) => setPaymentData((prev) => ({ ...prev, comments: e.target.value }))}
+                  placeholder="Add any comments or remarks"
+                  style={{
+                    borderRadius: "6px",
+                    borderColor: "#e0e0e0",
+                    resize: "none",
+                  }}
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer style={{ borderTop: "none", padding: "0 20px 20px" }}>
+            <Button
+              style={{
+                background: "linear-gradient(45deg, #27ae60, #2ecc71)",
+                border: "none",
+                borderRadius: "8px",
+                padding: "6px 10px",
+                fontWeight: "500",
+                transition: "transform 0.2s",
+                width: "100px",
+              }}
+              className="btn-sm"
+              onClick={() => {
+                // TODO: Implement payment submission logic here
+                handleAddPayment();
+              }}
+              disabled={addPaymentLoading}
+            >
+              Add
+            </Button>
+            <Button
+              style={{
+                background: "linear-gradient(45deg, #2980b9, #3498db)",
+                border: "none",
+                borderRadius: "8px",
+                padding: "6px 20px",
+                fontWeight: "500",
+                transition: "transform 0.2s",
+              }}
+              className="btn-sm"
+              onClick={handleCloseGenerateModal}
+              disabled={addPaymentLoading}
+            >
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     </div>
   );
