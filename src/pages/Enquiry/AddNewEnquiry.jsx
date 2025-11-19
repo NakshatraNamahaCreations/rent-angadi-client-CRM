@@ -217,7 +217,6 @@ const AddNewEnquiry = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.clear()
 
     // Validation (add more as needed)
     if (

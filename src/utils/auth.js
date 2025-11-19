@@ -1,7 +1,7 @@
 export const AuthManager = {
   setAuthData: (token, permissions, user) => {
-    console.log(`token: `, token);
-    console.log(`permissions: `, permissions);
+    // console.log(`token: `, token);
+    // console.log(`permissions: `, permissions);
     const expiryTime = new Date().getTime() + 7200000; // 2 hours from now    
 
     sessionStorage.setItem('token', token);

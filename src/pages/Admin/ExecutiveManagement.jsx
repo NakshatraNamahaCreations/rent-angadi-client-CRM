@@ -43,15 +43,15 @@ const ExecutiveManagement = () => {
   const getAllExecutives = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      console.log(`getAllExecutives token: ${token}`);
+      //console.log(`getAllExecutives token: ${token}`);
 
       const res = await axios.get(`${ApiURL}/executive`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(`getAllExecutives res.data: `, res.data);
-      console.log(`getAllExecutives res.data.client.executives: `, res.data.client.executives);
+      // console.log(`getAllExecutives res.data: `, res.data);
+      // console.log(`getAllExecutives res.data.client.executives: `, res.data.client.executives);
       if (res.status === 200) {
         setUserdata(res.data.client.executives);
         setFilterData(res.data.client.executives);

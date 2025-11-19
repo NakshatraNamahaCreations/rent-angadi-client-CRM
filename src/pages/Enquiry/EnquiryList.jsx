@@ -35,7 +35,7 @@ const EnquiryList = () => {
       setLoading(true);
       try {
         const res = await axios.get(`${ApiURL}/Enquiry/my-enquiries/${clientId}`);
-        console.log(`getallEnquiry res.data: `, res.data);
+        // console.log(`getallEnquiry res.data: `, res.data);
         if (res.status === 200) {
           setEnquiries(res.data.enquiryData);
         }
